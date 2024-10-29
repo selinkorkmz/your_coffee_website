@@ -1,4 +1,7 @@
-node_modules/
-.env
-*.log
-.DS_Store
+backend/node_modules/
+backend/.env
+backend/*.log
+backend/.DS_Store
+
+frontend/node_modules
+frontend/package-lock.json
