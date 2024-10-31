@@ -65,4 +65,25 @@ const getCoffeeByProductId = (productId, callback) => {
     });
 };
 
-module.exports = { getCoffeeByProductId,getProductByField,getAllProducts,getProductById };
+const addProduct = (product, callback) => {
+    const { name, description, price, quantity_in_stock, warranty_status, distributor_info, category } = product;
+
+    // Define the SQL query for inserting a new product
+    const query = `
+        INSERT INTO Products (name, description, price, quantity_in_stock, warranty_status, distributor_info, category)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    // Execute the query with the provided product details
+    db.run(query, [name, description, price, quantity_in_stock, warranty_status, distributor_info, category], function (err) {
+        if (err) {
+            console.error('Error adding product:', err.message);
+            callback(err, null); // Return error if the query fails
+        } else {
+            callback(null, { productId: this.lastID }); // Return the new product's ID
+        }
+    });
+};
+
+
+module.exports = { getCoffeeByProductId,getProductByField,getAllProducts,getProductById, addProduct};

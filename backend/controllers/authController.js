@@ -1,12 +1,18 @@
+// controllers/authController.js
+
 const db = require('../models/database.js');
-const md5 = require('md5');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+// JWT Secret Key (should be stored securely in environment variables)
+const JWT_SECRET = 'your-secret-key';
 
 // Function to register a new user
-const registerUser = (name, email, password, role, callback) => {
+const registerUser = async (name, email, password, role, callback) => {
     // Check if the email is already in use
     const checkEmailQuery = `SELECT * FROM Users WHERE email = ?`;
 
-    db.get(checkEmailQuery, [email], (err, row) => {
+    db.get(checkEmailQuery, [email], async (err, row) => {
         if (err) {
             return callback(err);
         }
@@ -14,13 +20,15 @@ const registerUser = (name, email, password, role, callback) => {
             return callback(new Error('Email already in use. Please use a different email.'));
         }
 
+        // Hash the password using bcrypt
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const shoppingCart = JSON.stringify([]); // Initialize an empty shopping cart
+
         // Insert the new user
         const insertUserQuery = `
             INSERT INTO Users (name, email, password, role, shopping_cart)
             VALUES (?, ?, ?, ?, ?)
         `;
-        const hashedPassword = md5(password); // Hash the password using md5
-        const shoppingCart = JSON.stringify([]); // Initialize an empty shopping cart
 
         db.run(insertUserQuery, [name, email, hashedPassword, role, shoppingCart], function (err) {
             if (err) {
@@ -31,24 +39,30 @@ const registerUser = (name, email, password, role, callback) => {
     });
 };
 
-
 // Function to sign in a user
 const signInUser = (email, password, callback) => {
-    const hashedPassword = md5(password); // Hash the entered password
+    // Query to find the user by email
+    const query = `SELECT * FROM Users WHERE email = ?`;
 
-    // Query to find the user by email and password
-    const query = `SELECT * FROM Users WHERE email = ? AND password = ?`;
-
-    db.get(query, [email, hashedPassword], (err, row) => {
+    db.get(query, [email], async (err, user) => {
         if (err) {
             return callback(err);
         }
-        if (!row) {
-            return callback(new Error('Invalid email or password'));
+        if (!user) {
+            return callback(new Error('Invalid email or password.'));
         }
 
-        // If user is found, return user data
-        callback(null, row);
+        // Compare the hashed password using bcrypt
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatch) {
+            return callback(new Error('Invalid email or password.'));
+        }
+
+        // Generate a JWT token
+        const token = jwt.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+
+        // Return user and token
+        callback(null, { token, user });
     });
 };
 
@@ -64,6 +78,7 @@ const getAllUsers = (callback) => {
         callback(null, rows);
     });
 };
+
 // Get User by Email Function
 const getUserByEmail = (email, callback) => {
     const query = `SELECT user_id, name, email, role FROM Users WHERE email = ?`; // Exclude password for security
@@ -80,19 +95,17 @@ const getUserByEmail = (email, callback) => {
     });
 };
 
-
-
 // Update User Information Function
-const updateUser = (userId, name, email, password, callback) => {
+const updateUser = async (userId, name, email, password, callback) => {
     // Check if the new email is already in use by another user
     const checkEmailQuery = `SELECT * FROM Users WHERE email = ? AND user_id != ?`;
 
-    db.get(checkEmailQuery, [email, userId], (err, row) => {
+    db.get(checkEmailQuery, [email, userId], async (err, row) => {
         if (err) return callback(err);
         if (row) return callback(new Error('Email already in use by another user.'));
 
         // Prepare the query and parameters based on whether the password is provided
-        const hashedPassword = password ? md5(password) : null;
+        const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
         let updateQuery = `UPDATE Users SET name = ?, email = ?`;
         const params = [name, email];
 
@@ -113,6 +126,11 @@ const updateUser = (userId, name, email, password, callback) => {
     });
 };
 
-
-
-module.exports = { registerUser, signInUser, getAllUsers,getUserByEmail,updateUser };
+// Export the functions
+module.exports = {
+    registerUser,
+    signInUser,
+    getAllUsers,
+    getUserByEmail,
+    updateUser
+};

@@ -1,5 +1,4 @@
 const sqlite3 = require('sqlite3').verbose();
-const md5 = require('md5');
 
 const DBSOURCE = "yourcoffee.db";
 
@@ -24,12 +23,12 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             if (err) {
                 console.error('Products table creation error:', err.message);
             } else {
-                // Insert sample data into Products table
                 const insert = 'INSERT INTO Products (name, description, price, quantity_in_stock, warranty_status, distributor_info, category) VALUES (?,?,?,?,?,?,?)';
-                //db.run(insert, ["Espresso Blend", "A rich and smooth espresso blend.", 15.99, 100, "1 year", "CoffeeCo", "Coffee"]);
-                //db.run(insert, ["House Blend", "Balanced and flavorful house blend.", 12.99, 50, "6 months", "CoffeeCo", "Coffee"]);
-                //db.run(insert, ["Espresso Machine", "High-quality espresso machine.", 199.99, 20, "2 years", "MachineMakers", "Coffee Machine"]);
-                //db.run(insert, ["Drip Coffee Maker", "Easy-to-use drip coffee maker.", 49.99, 30, "1 year", "MachineMakers", "Coffee Machine"]);
+                // Example insert statements (if needed)
+                // db.run(insert, ["Espresso Blend", "A rich and smooth espresso blend.", 15.99, 100, "1 year", "CoffeeCo", "Coffee"]);
+                // db.run(insert, ["House Blend", "Balanced and flavorful house blend.", 12.99, 50, "6 months", "CoffeeCo", "Coffee"]);
+                // db.run(insert, ["Espresso Machine", "High-quality espresso machine.", 199.99, 20, "2 years", "MachineMakers", "Coffee Machine"]);
+                // db.run(insert, ["Drip Coffee Maker", "Easy-to-use drip coffee maker.", 49.99, 30, "1 year", "MachineMakers", "Coffee Machine"]);
             }
         });
 
@@ -58,7 +57,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                 console.error('CoffeeMachines table creation error:', err.message);
             }
         });
-
+/*
         // Create Users table with shopping_cart as a JSON text field
         db.run(`CREATE TABLE IF NOT EXISTS Users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,8 +71,42 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                 console.error('Users table creation error:', err.message);
             } else {
                 const insert = 'INSERT INTO Users (name, email, password, role, shopping_cart) VALUES (?,?,?,?,?)';
-               // db.run(insert, ["Admin", "admin@example.com", md5("admin123456"), "Product Manager", JSON.stringify([])]);
-                //db.run(insert, ["John Doe", "johndoe@example.com", md5("password123"), "Customer", JSON.stringify([])]);
+                // Note: Password should be hashed before being inserted using bcrypt (handled in authController).
+                // Example insert statement:
+                // db.run(insert, ["Admin", "admin@example.com", hashedPassword, "Product Manager", JSON.stringify([])]);
+            }
+        });
+*/
+        db.run(`CREATE TABLE IF NOT EXISTS Users (
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL, 
+            password TEXT NOT NULL, 
+            role TEXT CHECK(role IN ('Customer', 'Sales Manager', 'Product Manager')) DEFAULT 'Customer',
+            shopping_cart TEXT
+        )`, (err) => {
+            if (err) {
+                console.error('Users table creation error:', err.message);
+            } else {
+                const insert = 'INSERT INTO Users (name, email, password, role, shopping_cart) VALUES (?,?,?,?,?)';
+                // Note: Password should be hashed before being inserted using bcrypt (handled in authController).
+
+                // Example insert statement to create an Admin user:
+                const bcrypt = require('bcryptjs');
+                const hashedPassword = bcrypt.hashSync('password123', 10); // Hash the password
+
+                // Insert the Admin user
+                db.get("select * from Users where email = ?", ["admin@example.com"], (err, res) => {
+                    if (!res) {
+                        db.run(insert, ["Admin User", "admin@example.com", hashedPassword, "Product Manager", JSON.stringify([])], (err) => {
+                            if (err) {
+                                console.error('Admin user insertion error:', err.message);
+                            } else {
+                                console.log('Admin user created successfully.');
+                            }
+                        });
+                    }
+                })
             }
         });
 
