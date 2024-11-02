@@ -10,8 +10,8 @@ const LINKS = [
     to: "about",
   },
   {
-    label: "Contact",
-    to: "contact",
+    label: "Cart",
+    to: "cart",
   },
 ];
 
