@@ -15,18 +15,25 @@ import { CiCoffeeCup } from "react-icons/ci";
 import { TbBowlSpoonFilled } from "react-icons/tb";
 
 const CATEGORIES = [
-  { name: "Coffee Beans", icon: <PiCoffeeBeanFill size={64} /> },
+  {
+    name: "Coffee Beans",
+    icon: <PiCoffeeBeanFill size={64} />,
+    to: "/products?category=coffee-beans&subCategory=all-coffee-beans",
+  },
   {
     name: "Equipments",
     icon: <GiCoffeePot size={64} />,
+    to: "/products?category=equipments&subCategory=all-equipments",
   },
   {
     name: "Drinks",
     icon: <CiCoffeeCup size={64} />,
+    to: "/products?category=drinks&subCategory=all-drinks",
   },
   {
     name: "Accessories",
     icon: <TbBowlSpoonFilled size={64} />,
+    to: "/products?category=accessories&subCategory=all-accessories",
   },
 ];
 const IMAGES = [
@@ -98,7 +105,7 @@ const LandingPage = () => {
       <div className="flex flex-col px-32 mt-12">
         <div className="grid grid-cols-4 gap-4 h-32">
           {CATEGORIES.map((category) => (
-            <Link to={`/${category.name}`}>
+            <Link to={category.to}>
               <Card key={category.name}>
                 <CardHeader className="text-center">
                   <CardTitle>{category.name}</CardTitle>
