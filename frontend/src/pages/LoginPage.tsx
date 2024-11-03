@@ -25,6 +25,10 @@ function LoginPage() {
                 setErrorMessage(result.error)
                 return;
             }
+            
+            localStorage.setItem("user", JSON.stringify(result.user))
+            localStorage.setItem("token", JSON.stringify(result.token))
+
 
             navigate("/")
         })
