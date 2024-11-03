@@ -75,7 +75,7 @@ const LandingPage = () => {
         <CarouselContent className="-ml-1 px-4">
           {Array.from({ length: 5 }).map((_, index) => (
             <CarouselItem key={index} className="pl-1 basis-full">
-              <div className="p-1 h-[528px]">
+              <div className="p-1 h-[450px]">
                 <Card className="w-full h-full">
                   <CardContent className="flex items-center justify-center p-6 h-full">
                     <img
@@ -102,7 +102,7 @@ const LandingPage = () => {
           />
         ))}
       </div>
-      <div className="flex flex-col px-32 mt-12">
+      <div className="flex flex-col px-32 mt-4">
         <div className="grid grid-cols-4 gap-4 h-32">
           {CATEGORIES.map((category) => (
             <Link to={category.to}>
