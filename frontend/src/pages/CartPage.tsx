@@ -1,103 +1,95 @@
-import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {addProductToCart, fetchAllProducts, fetchUserCart} from "@/lib/requests";
 
-const products = [
-    {
-        id: 1,
-        name: "espresso"
-    },
-    {
-        id: 2,
-        name: "filter"
-    },
-    {
-        id: 3,
-        name: "machine"
-    },
-    {
-        id: 4,
-        name: "capsule"
-    },
-    {
-        id: 5,
-        name: "americano"
-    }
-]
+
+const API_URL = 'http://localhost:3000/api'; // Replace with your backend URL
 
 function CartPage() {
-    const [myCart, setMyCart] = useState([])
+    const [myCart, setMyCart] = useState<any>([]);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [products, setProducts] = useState<any>([]);
 
     useEffect(() => {
-        setMyCart(products) // backendden cart bilgisi alınacak
-    }, [])
+        fetchAllProducts().then((result)=>{
+            if(!result.error){
+                setProducts(result.products)
+            }
+        })
 
-    useEffect(() => {
-        console.log(myCart)
-    }, [myCart])
+        // Check for saved user in local storage
+        const savedUser = localStorage.getItem("user");
 
+        if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            // If user is logged in, fetch cart data from backend
+            fetchUserCart().then((result) => {
+                if (result.error) {
+                    setErrorMessage(result.error)
+                    return;
+                }
+
+                setMyCart(result.cart);
+
+            });
+
+        } else {
+            // If no user is logged in, load cart data from local storage
+            const localCart = JSON.parse(localStorage.getItem("cart")  || "[]");
+            setMyCart(localCart);
+        }
+
+    }, []);
+    
     return (
         <div className="flex flex-col align-center justify-center">
-            {
-                products.map((item) => {
-                    return (
-                        <div className="flex flex-row align-center justify-between w-[300px]">
-                            <p>
-                                id: {item.id}
-                            </p>
-                            <p>
-                                name: {item.name}
-                            </p>
-                            <button
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
-                                onClick={
-                                    () => {
-                                        setMyCart((prev) => {
-                                            if (!prev.find((cartItem) => cartItem.id === item.id)) {
-                                                return [...prev, item]
-                                            }
-
-                                            return prev
-                                        })
-                                    }
+            {/* Products list */}
+            <div className="grid grid-cols-4 gap-2">
+            {products.map((item) => (
+                <div key={item.product_id} className="flex flex-row align-center justify-between w-[300px]">
+                    <p>id: {item.product_id}</p>
+                    <p>name: {item.name}</p>
+                    <button
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                        onClick={() => {
+                            setMyCart((prev: any) => {
+                                if (!prev.find((cartItem: any) => cartItem.product_id === item.product_id)) {
+                                    return [...prev, item];
                                 }
-                            >
-                                Add to cart
-                            </button>
-                        </div>
-                    )
-                })
-            }
+                                return prev;
+                            });
 
-            <p className="text-3xl">
-                Your Cart
-            </p>
-            {
-                myCart.map((item) => {
-                    return (
-                        <div className="flex flex-row align-center justify-between w-[300px]">
-                            <p>
-                                id: {item.id}
-                            </p>
-                            <p>
-                                name: {item.name}
-                            </p>
-                            <button
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
-                                onClick={
-                                    () => {
-                                        setMyCart((prev) => prev.filter((prevItem) => prevItem.id !== item.id))
-                                    }
-                                }
-                            >
-                                Remove from cart
-                            </button>
-                        </div>
-                    )
-                })
-            }
+                            if (!localStorage.getItem("user")) {
+                                localStorage.setItem("cart", JSON.stringify(myCart));
+                            } else {
+                                addProductToCart(item.product_id, 1)
+                            }
+                        }}
+                    >
+                        Add to cart
+                    </button>
+                </div>
+            ))}
+            </div>
 
+            {/* Cart display */}
+            <p className="text-3xl">Your Cart</p>
+            {myCart.map((item: any) => (
+                <div key={item.product_id} className="flex flex-row align-center justify-between w-[300px]">
+                    <p>id: {item.product_id}</p>
+                    <p>name: {item.name}</p>
+                    <button
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                        onClick={() => {
+                            setMyCart((prev: any) => prev.filter((prevItem: any) => prevItem.product_id !== item.product_id));
+                        }}
+                    >
+                        Remove from cart
+                    </button>
+                </div>
+            ))}
         </div>
-    )
+    );
 }
 
-export default CartPage
+export default CartPage;
