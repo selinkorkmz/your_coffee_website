@@ -67,18 +67,46 @@ const getProductByField = (field, value, callback) => {
 };*/
 
 
-//just this func should be updated acc to new products table!
 const addProduct = (product, callback) => {
-    const { name, description, price, quantity_in_stock, warranty_status, distributor_info, category } = product;
+    const { 
+        name, 
+        description, 
+        model, 
+        serial_number, 
+        price, 
+        discounted_price, 
+        quantity_in_stock, 
+        warranty_status, 
+        distributor_info, 
+        origin, 
+        roast_level, 
+        power_usage, 
+        category 
+    } = product;
 
-    // Define the SQL query for inserting a new product
+    // Define the SQL query for inserting a new product with the updated fields
     const query = `
-        INSERT INTO Products (name, description, price, quantity_in_stock, warranty_status, distributor_info, category)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO Products (name, description, model, serial_number, price, discounted_price, quantity_in_stock, 
+                              warranty_status, distributor_info, origin, roast_level, power_usage, category)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // Execute the query with the provided product details
-    db.run(query, [name, description, price, quantity_in_stock, warranty_status, distributor_info, category], function (err) {
+    db.run(query, [
+        name, 
+        description, 
+        model, 
+        serial_number, 
+        price, 
+        discounted_price, 
+        quantity_in_stock, 
+        warranty_status, 
+        distributor_info, 
+        origin, 
+        roast_level, 
+        power_usage, 
+        category
+    ], function (err) {
         if (err) {
             console.error('Error adding product:', err.message);
             callback(err, null); // Return error if the query fails
@@ -87,6 +115,7 @@ const addProduct = (product, callback) => {
         }
     });
 };
+
 
 const getAllCategories = (callback) => {
     const query = `SELECT DISTINCT category FROM Products`;
