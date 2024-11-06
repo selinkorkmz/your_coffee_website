@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { updateUser, registerUser, signInUser, getAllUsers, getUserByEmail } = require('../controllers/authController.js');
-const authenticateJWT = require('../middlewares/authMiddleware'); // Middleware to verify JWT
+const { updateUser, registerUser, signInUser, getAllUsers, getUserByEmail,getUserProfile } = require('../controllers/authController.js');
+const authenticateJWT = require('../middlewares/authMiddleware.js'); // Middleware to verify JWT
 
 // Route to register a user
 router.post('/register', (req, res) => {
@@ -61,6 +61,20 @@ router.put('/users/:id', authenticateJWT, (req, res) => {
             return res.status(400).json({ message: err.message });
         }
         res.status(200).json({ message });
+    });
+});
+// Route to get detailed user information by user_id
+router.get('/users/profile/:id', (req, res) => {
+    const userId = req.params.id;
+
+    getUserProfile(userId, (err, user) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to retrieve user profile' });
+        }
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ message: 'User profile retrieved successfully', user });
     });
 });
 

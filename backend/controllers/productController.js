@@ -25,6 +25,7 @@ const getAllProducts = (callback) => {
             callback(err, null);
         } else {
             callback(null, rows); // Return all the products
+            console.log("...")
         }
     });
 };
@@ -33,7 +34,7 @@ const getAllProducts = (callback) => {
 const getProductByField = (field, value, callback) => {
     const query = `SELECT * FROM Products WHERE ${field} = ?`;
 
-    db.get(query, [value], (err, row) => {
+    db.all(query, [value], (err, row) => {
         if (err) {
             console.error(`Error fetching product by ${field}:`, err.message);
             callback(err, null);
@@ -45,7 +46,7 @@ const getProductByField = (field, value, callback) => {
 
 
 // Function to get a coffee by its product_id
-const getCoffeeByProductId = (productId, callback) => {
+/*const getCoffeeByProductId = (productId, callback) => {
     const query = `
         SELECT Coffees.coffee_id, Products.product_id, Products.name, Products.description, Products.price, 
                Products.quantity_in_stock, Products.warranty_status, Products.distributor_info, 
@@ -63,8 +64,10 @@ const getCoffeeByProductId = (productId, callback) => {
             callback(null, row); // Return the coffee details
         }
     });
-};
+};*/
 
+
+//just this func should be updated acc to new products table!
 const addProduct = (product, callback) => {
     const { name, description, price, quantity_in_stock, warranty_status, distributor_info, category } = product;
 
@@ -85,5 +88,41 @@ const addProduct = (product, callback) => {
     });
 };
 
+const getAllCategories = (callback) => {
+    const query = `SELECT DISTINCT category FROM Products`;
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching categories:', err.message);
+            callback(err, null);
+        } else {
+            const categories = rows.map(row => row.category); // Extract category names
+            callback(null, categories);
+        }
+    });
+};
 
-module.exports = { getCoffeeByProductId,getProductByField,getAllProducts,getProductById, addProduct};
+const searchProducts = (searchTerm, callback) => {
+    const query = `
+        SELECT * FROM Products
+        WHERE name LIKE ?
+        OR description LIKE ?
+        OR category LIKE ?
+        OR distributor_info LIKE ?
+    `;
+
+    // The search term needs to have ⁠ % ⁠ added for partial matching
+    const searchValue =`%${searchTerm}%`;
+
+    db.all(query, [searchValue, searchValue, searchValue, searchValue], (err, rows) => {
+        if (err) {
+            console.error('Error searching products:', err.message);
+            callback(err, null);
+        } else {
+            callback(null, rows); // Return matching products
+        }
+    });
+};
+
+
+
+module.exports = { getProductByField,getAllProducts,getProductById, addProduct,getAllCategories,searchProducts};

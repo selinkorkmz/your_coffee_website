@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { addToCart, getShoppingCart } = require('../controllers/cartController.js');
-const authenticateJWT = require('../middlewares/authMiddleware'); // JWT authentication middleware
-const authorizeRole = require('../middlewares/authorizeRole'); // Role-based authorization middleware
-
+const authenticateJWT = require('../middlewares/authMiddleware.js'); // JWT authentication middleware
+const authorizeRole = require('../middlewares/authorizeRole.js'); // Role-based authorization middleware
+//authenticateJWT, authorizeRole(['Customer']),
 // Route to add a product to the user's cart (Only for customers)
-router.post('/users/:userId/addProductToCart', authenticateJWT, authorizeRole(['Customer']), (req, res) => {
+router.post('/:userId/addProductToCart',authenticateJWT, authorizeRole(['Customer']), (req, res) => {
     const userId = req.params.userId;
     const { productId, quantity } = req.body;
 
@@ -18,7 +18,8 @@ router.post('/users/:userId/addProductToCart', authenticateJWT, authorizeRole(['
 });
 
 // Route to get the shopping cart of a specific user (Only for customers)
-router.get('/users/:userId/cart', authenticateJWT, authorizeRole(['Customer']), (req, res) => {
+//authenticateJWT, authorizeRole(['Customer']),
+router.get('/:userId',authenticateJWT, authorizeRole(['Customer']),  (req, res) => {
     const userId = req.params.userId;
 
     getShoppingCart(userId, (err, cart) => {

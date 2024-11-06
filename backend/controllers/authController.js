@@ -126,11 +126,26 @@ const updateUser = async (userId, name, email, password, callback) => {
     });
 };
 
+// Function to get detailed user information by user_id
+const getUserProfile = (userId, callback) => {
+    const query =` SELECT user_id, name, email, role, shopping_cart FROM Users WHERE user_id = ? `;
+
+    db.get(query, [userId], (err, row) => {
+        if (err) {
+            console.error('Error fetching user profile:', err.message);
+            callback(err, null);
+        } else {
+            callback(null, row); // Return the user's profile data
+        }
+    });
+};
+
 // Export the functions
 module.exports = {
     registerUser,
     signInUser,
     getAllUsers,
     getUserByEmail,
-    updateUser
+    updateUser,
+    getUserProfile
 };

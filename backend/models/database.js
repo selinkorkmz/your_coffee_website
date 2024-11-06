@@ -9,74 +9,40 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
     } else {
         console.log('Connected to the SQLite database.');
 
-        // Create Products table (central table for all products)
         db.run(`CREATE TABLE IF NOT EXISTS Products (
             product_id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             description TEXT,
+            model TEXT,
+            serial_number TEXT NOT NULL,
             price REAL NOT NULL,
+            discounted_price REAL,
             quantity_in_stock INTEGER NOT NULL,
             warranty_status TEXT,
             distributor_info TEXT,
+            origin TEXT,
+            roast_level TEXT,
+            power_usage TEXT,
             category TEXT CHECK(category IN ('Coffee', 'Coffee Machine')) NOT NULL
         )`, (err) => {
             if (err) {
                 console.error('Products table creation error:', err.message);
             } else {
-                const insert = 'INSERT INTO Products (name, description, price, quantity_in_stock, warranty_status, distributor_info, category) VALUES (?,?,?,?,?,?,?)';
-                // Example insert statements (if needed)
-                // db.run(insert, ["Espresso Blend", "A rich and smooth espresso blend.", 15.99, 100, "1 year", "CoffeeCo", "Coffee"]);
-                // db.run(insert, ["House Blend", "Balanced and flavorful house blend.", 12.99, 50, "6 months", "CoffeeCo", "Coffee"]);
-                // db.run(insert, ["Espresso Machine", "High-quality espresso machine.", 199.99, 20, "2 years", "MachineMakers", "Coffee Machine"]);
-                // db.run(insert, ["Drip Coffee Maker", "Easy-to-use drip coffee maker.", 49.99, 30, "1 year", "MachineMakers", "Coffee Machine"]);
+                const insert = `INSERT INTO Products 
+                    (name, description, model, serial_number, price,discounted_price, quantity_in_stock, warranty_status, distributor_info, origin, roast_level, power_usage, category) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        
+                // Inserting coffee product examples
+               // db.run(insert, ["Espresso Blend", "A rich and smooth espresso blend.", "Model1", "SN123", 15.99,null, 100, "1 year", "CoffeeCo", "Brazil", "Medium", null, "Coffee"]);
+                //db.run(insert, ["House Blend", "Balanced and flavorful house blend.", "Model2", "SN124", 12.99, null,50, "6 months", "CoffeeCo", "Colombia", "Dark", null, "Coffee"]);
+        
+                // Inserting coffee machine examples
+               // db.run(insert, ["Espresso Machine", "High-quality espresso machine.", "X100", "SN200", 199.99,null, 20, "2 years", "MachineMakers", null, null, "1500W", "Coffee Machine"]);
+                //db.run(insert, ["Drip Coffee Maker", "Easy-to-use drip coffee maker.", "D200", "SN201", 49.99,null, 30, "1 year", "MachineMakers", null, null, "800W", "Coffee Machine"]);
             }
         });
 
-        // Create Coffees table with foreign key reference to Products
-        db.run(`CREATE TABLE IF NOT EXISTS Coffees (
-            coffee_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            product_id INTEGER UNIQUE,
-            origin TEXT,
-            roast_level TEXT,
-            FOREIGN KEY (product_id) REFERENCES Products(product_id)
-        )`, (err) => {
-            if (err) {
-                console.error('Coffees table creation error:', err.message);
-            }
-        });
 
-        // Create CoffeeMachines table with foreign key reference to Products
-        db.run(`CREATE TABLE IF NOT EXISTS CoffeeMachines (
-            machine_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            product_id INTEGER UNIQUE,
-            power_usage TEXT,
-            warranty_period TEXT,
-            FOREIGN KEY (product_id) REFERENCES Products(product_id)
-        )`, (err) => {
-            if (err) {
-                console.error('CoffeeMachines table creation error:', err.message);
-            }
-        });
-/*
-        // Create Users table with shopping_cart as a JSON text field
-        db.run(`CREATE TABLE IF NOT EXISTS Users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL, 
-            password TEXT NOT NULL, 
-            role TEXT CHECK(role IN ('Customer', 'Sales Manager', 'Product Manager')) DEFAULT 'Customer',
-            shopping_cart TEXT
-        )`, (err) => {
-            if (err) {
-                console.error('Users table creation error:', err.message);
-            } else {
-                const insert = 'INSERT INTO Users (name, email, password, role, shopping_cart) VALUES (?,?,?,?,?)';
-                // Note: Password should be hashed before being inserted using bcrypt (handled in authController).
-                // Example insert statement:
-                // db.run(insert, ["Admin", "admin@example.com", hashedPassword, "Product Manager", JSON.stringify([])]);
-            }
-        });
-*/
         db.run(`CREATE TABLE IF NOT EXISTS Users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -157,6 +123,34 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         )`, (err) => {
             if (err) {
                 console.error('Invoices table creation error:', err.message);
+            }
+        });
+        
+        //Create shoppingcart table
+        db.run(`CREATE TABLE IF NOT EXISTS ShoppingCart (
+            cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            product_id INTEGER NOT NULL,
+            quantity INTEGER NOT NULL,
+            -- Product details (copied from Products at the time of adding to cart)
+            name TEXT NOT NULL,
+            description TEXT,
+            model TEXT,
+            serial_number TEXT NOT NULL,
+            price REAL NOT NULL,
+            discounted_price REAL,
+            quantity_in_stock INTEGER NOT NULL,
+            warranty_status TEXT,
+            distributor_info TEXT,
+            origin TEXT,
+            roast_level TEXT,
+            power_usage TEXT,
+            category TEXT CHECK(category IN ('Coffee', 'Coffee Machine')) NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES Users(user_id),
+            FOREIGN KEY (product_id) REFERENCES Products(product_id)
+        )`, (err) => {
+            if (err) {
+                console.error('ShoppingCart table creation error:', err.message);
             }
         });
     }

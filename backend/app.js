@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -10,7 +9,6 @@ const cartRoutes = require('./routes/cartRoutes.js');
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
-app.use(cors())
 
 // Use the routes
 app.use('/api/products', productRoutes);   // Prefix for product routes

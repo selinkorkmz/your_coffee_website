@@ -4,17 +4,19 @@ const {
     getProductById,
     getAllProducts,
     getProductByField,
-    getCoffeeByProductId,
+    //getCoffeeByProductId,
     addProduct,
+    getAllCategories,
+    searchProducts,
     updateProduct,
     deleteProduct
 } = require('../controllers/productController.js');  // Import the functions from the controller
 
-const authenticateJWT = require('../middlewares/authMiddleware'); // JWT authentication middleware
-const authorizeRole = require('../middlewares/authorizeRole'); // Role-based authorization middleware
+const authenticateJWT = require('../middlewares/authMiddleware.js'); // JWT authentication middleware
+const authorizeRole = require('../middlewares/authorizeRole.js'); // Role-based authorization middleware
 
 // Route to get all products (Accessible by all roles, including customers)
-router.get('/', (req, res) => {
+router.get('/all', (req, res) => {
     getAllProducts((err, products) => {
         if (err) {
             return res.status(500).json({ message: 'Failed to retrieve products', error: err.message });
@@ -24,7 +26,7 @@ router.get('/', (req, res) => {
 });
 
 // Route to get a product by its product_id (Accessible by all roles, including customers)
-router.get('/:id', (req, res) => {
+router.get('/getbyid/:id', (req, res) => {
     const productId = req.params.id;
 
     getProductById(productId, (err, product) => {
@@ -55,7 +57,7 @@ router.get('/field/:field/:value', (req, res) => {
 });
 
 // Route to get coffee by product_id (Accessible by all roles, including customers)
-router.get('/coffees/product/:id', (req, res) => {
+/*router.get('/coffees/product/:id', (req, res) => {
     const productId = req.params.id;
 
     getCoffeeByProductId(productId, (err, coffee) => {
@@ -67,7 +69,7 @@ router.get('/coffees/product/:id', (req, res) => {
         }
         res.status(200).json({ message: 'Coffee retrieved successfully', coffee });
     });
-});
+});*/
 
 // Route to add a product (Only for Product Managers and Admins)
 router.post('/', authenticateJWT, authorizeRole(['Product Manager', 'Admin']), (req, res) => {
@@ -79,6 +81,8 @@ router.post('/', authenticateJWT, authorizeRole(['Product Manager', 'Admin']), (
     });
 });
 
+
+//updateproduct function ı controllerda yok?
 // Route to update a product (Only for Product Managers and Admins)
 router.put('/:id', authenticateJWT, authorizeRole(['Product Manager', 'Admin']), (req, res) => {
     const productId = req.params.id;
@@ -101,5 +105,32 @@ router.delete('/:id', authenticateJWT, authorizeRole(['Product Manager', 'Admin'
         res.status(200).json({ message: 'Product deleted successfully' });
     });
 });
+
+router.get('/categories', (req, res) => {
+    getAllCategories((err, categories) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to retrieve categories' });
+        }
+        res.status(200).json({ message: 'Categories retrieved successfully', categories });
+    });
+});
+
+
+router.get('/search', (req, res) => {
+    const searchTerm = req.query.q; // Get the search term from query parameter
+
+    if (!searchTerm) {
+        return res.status(400).json({ message: 'Search term is required' });
+    }
+
+    searchProducts(searchTerm, (err, products) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to search products' });
+        }
+        res.status(200).json({ message: 'Products retrieved successfully', products });
+    });
+});
+
+
 
 module.exports = router;
