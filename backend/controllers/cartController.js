@@ -69,14 +69,14 @@ const addOrUpdateCart = (userId, product, quantity, callback) => {
             // Product not in cart, insert new entry with all details
             const insertCartQuery = `
                 INSERT INTO ShoppingCart 
-                (user_id, product_id, quantity, name, description, model, serial_number, price, quantity_in_stock, warranty_status, distributor_info, origin, roast_level, power_usage, category) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (user_id, product_id, quantity, name, description, model, serial_number, price,discounted_price, quantity_in_stock, warranty_status, distributor_info, origin, roast_level, power_usage, category) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
             db.run(insertCartQuery, [
                 userId, product.product_id, quantity,
                 product.name, product.description, product.model, product.serial_number,
-                product.price, product.quantity_in_stock, product.warranty_status,
+                product.price,product.discounted_price, product.quantity_in_stock, product.warranty_status,
                 product.distributor_info, product.origin, product.roast_level,
                 product.power_usage, product.category
             ], (insertErr) => {
@@ -108,6 +108,7 @@ const getShoppingCart = (userId, callback) => {
             model,
             serial_number,
             price,
+            discounted_price,
             warranty_status,
             distributor_info,
             origin,
