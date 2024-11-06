@@ -6,6 +6,7 @@ const {
     getProductByField,
     //getCoffeeByProductId,
     addProduct,
+    setDiscountOnProduct,
     getAllCategories,
     searchProducts,
     updateProduct,
@@ -131,6 +132,22 @@ router.get('/search', (req, res) => {
     });
 });
 
+// Route to set a discount on a product (Only for Sales Managers and Admins)
+router.put('/:id/discount', (req, res) => {
+    const productId = req.params.id;
+    const { discountRate } = req.body;
 
+    // Validate the discount rate input
+    if (discountRate === undefined || discountRate <= 0 || discountRate >= 1) {
+        return res.status(400).json({ message: 'Invalid or missing discount rate' });
+    }
 
+    // Apply the discount using the controller function
+    setDiscountOnProduct(productId, discountRate, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to apply discount', error: err.message });
+        }
+        res.status(200).json({ message: 'Discount applied successfully', product: result });
+    });
+});
 module.exports = router;

@@ -73,6 +73,17 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                         });
                     }
                 })
+                db.get("select * from Users where email = ?", ["sales@example.com"], (err, res) => {
+                    if (!res) {
+                        db.run(insert, ["Sales User", "sales@example.com", hashedPassword, "Sales Manager", JSON.stringify([])], (err) => {
+                            if (err) {
+                                console.error('Sales user insertion error:', err.message);
+                            } else {
+                                console.log('Sales user created successfully.');
+                            }
+                        });
+                    }
+                })
             }
         });
 

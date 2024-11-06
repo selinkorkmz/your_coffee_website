@@ -151,7 +151,40 @@ const searchProducts = (searchTerm, callback) => {
         }
     });
 };
+// Function to apply a discount to a product by its product_id
+const setDiscountOnProduct = (productId, discountRate, callback) => {
+    console.log('Applying discount:', productId, discountRate); // Debug log
+    if (discountRate <= 0 || discountRate >= 1) {
+        return callback(new Error('Invalid discount rate'), null);
+    }
+
+    // First, retrieve the current product price
+    getProductById(productId, (err, product) => {
+        if (err) {
+            return callback(err, null);
+        }
+        if (!product) {
+            return callback(new Error('Product not found'), null);
+        }
+
+        // Calculate the new discounted price
+        const newPrice = product.price * (1 - discountRate);
+
+        // Update the product's price in the database
+        const query = `UPDATE Products SET discounted_price = ? WHERE product_id = ?`;
+        db.run(query, [newPrice, productId], (err) => {
+            if (err) {
+                console.error('Error updating product price:', err.message);
+                callback(err, null);
+            } else {
+                //notifyUsersWithDiscountedProduct(productId); // Notify users
+                callback(null, { productId, newPrice }); // Return updated product info
+            }
+        });
+    });
+};
 
 
 
-module.exports = { getProductByField,getAllProducts,getProductById, addProduct,getAllCategories,searchProducts};
+
+module.exports = { getProductByField,getAllProducts,getProductById, addProduct,getAllCategories,searchProducts,setDiscountOnProduct};
