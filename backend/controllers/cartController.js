@@ -15,6 +15,39 @@ const addToCart = (userId, productId, quantity, callback) => {
     });
 };
 
+const removeFromCart = (userId, productId, quantity, callback) => {
+    // Step 1: Find the cart item to be removed
+    const findCartItemQuery = `SELECT * FROM ShoppingCart WHERE user_id = ? AND product_id = ?`;
+    
+    db.get(findCartItemQuery, [userId, productId], (err, cartItem) => {
+        if (err) return callback(err);
+        if (!cartItem) return callback(new Error('Item not found in cart.'));
+        if (cartItem.quantity < quantity) {
+            return callback(new Error('Quantity to remove exceeds quantity in cart.'));
+        }
+
+        // Step 2: Calculate new quantity or remove the item
+        const newQuantity = cartItem.quantity - quantity;
+        
+        if (newQuantity > 0) {
+            // Update cart item with new quantity
+            const updateCartItemQuery = `UPDATE ShoppingCart SET quantity = ? WHERE user_id = ? AND product_id = ?`;
+            db.run(updateCartItemQuery, [newQuantity, userId, productId], function (err) {
+                if (err) return callback(err);
+                callback(null, { message: 'Cart item quantity updated.', quantity: newQuantity });
+            });
+        } else {
+            // Remove item from the cart
+            const deleteCartItemQuery = `DELETE FROM ShoppingCart WHERE user_id = ? AND product_id = ?`;
+            db.run(deleteCartItemQuery, [userId, productId], function (err) {
+                if (err) return callback(err);
+                callback(null, { message: 'Item removed from cart.' });
+            });
+        }
+    });
+};
+
+
 // Helper function to add or update cart entry
 const addOrUpdateCart = (userId, product, quantity, callback) => {
     // Check if the product is already in the user's shopping cart
@@ -99,4 +132,4 @@ const getShoppingCart = (userId, callback) => {
     });
 };
 
-module.exports = { addToCart, getShoppingCart };
+module.exports = { addToCart, removeFromCart, getShoppingCart, };

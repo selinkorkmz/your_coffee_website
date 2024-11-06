@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addToCart, getShoppingCart } = require('../controllers/cartController.js');
+const { addToCart, getShoppingCart,removeFromCart } = require('../controllers/cartController.js');
 const authenticateJWT = require('../middlewares/authMiddleware.js'); // JWT authentication middleware
 const authorizeRole = require('../middlewares/authorizeRole.js'); // Role-based authorization middleware
 //authenticateJWT, authorizeRole(['Customer']),
@@ -10,6 +10,19 @@ router.post('/:userId/addProductToCart',authenticateJWT, authorizeRole(['Custome
     const { productId, quantity } = req.body;
 
     addToCart(userId, productId, quantity, (err, message) => {
+        if (err) {
+            return res.status(400).json({ message: err.message });
+        }
+        res.status(200).json({ message });
+    });
+});
+
+// Route to remove a product from the user's cart 
+router.post('/:userId/removeProductFromCart', authenticateJWT, authorizeRole(['Customer']), (req, res) => {
+    const userId = req.params.userId;
+    const { productId, quantity } = req.body;
+
+    removeFromCart(userId, productId, quantity, (err, message) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }
