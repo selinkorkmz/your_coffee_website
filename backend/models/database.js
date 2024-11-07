@@ -86,8 +86,8 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                 })
             }
         });
-
-        // Create Orders table with foreign keys for user_id and product_id
+        
+        
         db.run(`CREATE TABLE IF NOT EXISTS Orders (
             order_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
@@ -95,17 +95,23 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             quantity INTEGER NOT NULL,
             price_at_purchase REAL NOT NULL,
             total_price REAL NOT NULL,
-            order_status TEXT CHECK(order_status IN ('Processing', 'In-Transit', 'Delivered')),
+            order_status TEXT CHECK(order_status IN ('Processing', 'In-Transit', 'Delivered', 'Canceled', 'Returned')) DEFAULT 'Processing',
             order_date DATE NOT NULL,
             delivery_address TEXT,
+            payment_status TEXT CHECK(payment_status IN ('Pending', 'Completed', 'Failed')) DEFAULT 'Pending',
+            payment_method TEXT,
+            transaction_date DATE,
             FOREIGN KEY (user_id) REFERENCES Users(user_id),
             FOREIGN KEY (product_id) REFERENCES Products(product_id)
         )`, (err) => {
             if (err) {
                 console.error('Orders table creation error:', err.message);
+            } else {
+                console.log('Orders table created successfully.');
             }
         });
 
+        
         // Create Ratings table for reviews and ratings on products
         db.run(`CREATE TABLE IF NOT EXISTS Ratings (
             review_id INTEGER PRIMARY KEY AUTOINCREMENT,
