@@ -1,6 +1,5 @@
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import Header from "@/components/header";
 import {
   Carousel,
   CarouselApi,
@@ -70,8 +69,7 @@ const LandingPage = () => {
 
   return (
     <div className="w-full h-full bg-amber-50">
-      <Header />
-      <Carousel className="w-full mt-8" setApi={setApi}>
+      <Carousel className="w-full" setApi={setApi}>
         <CarouselContent className="-ml-1 px-4">
           {Array.from({ length: 5 }).map((_, index) => (
             <CarouselItem key={index} className="pl-1 basis-full">
