@@ -1,6 +1,6 @@
 import { ProductCard } from "@/components/cards/ProductCard";
-import Header from "@/components/header";
 import { Input } from "@/components/ui/input";
+import { DATA } from "@/lib/data";
 import {
   Select,
   SelectContent,
@@ -123,48 +123,6 @@ const SUB_CATEGORIES = [
   },
 ];
 
-const DATA = [
-  {
-    id: 1,
-    serialNumber: "1234567890",
-    name: "Ethiopia Yirgacheffe",
-    description:
-      "A smooth and balanced coffee with hints of citrus and chocolate.",
-    category: "coffee-beans",
-    subCategory: "espresso-beans",
-    price: 10,
-    quantity: 100,
-    image: "https://picsum.photos/1920/528?0",
-    warrantyStatus: "valid",
-  },
-  {
-    id: 2,
-    serialNumber: "1234567891",
-    name: "Colombia Supremo",
-    description:
-      "A smooth and balanced coffee with hints of citrus and chocolate.",
-    category: "coffee-beans",
-    subCategory: "french-roast",
-    price: 12,
-    quantity: 100,
-    image: "https://picsum.photos/1920/528?1",
-    warrantyStatus: "valid",
-  },
-  {
-    id: 3,
-    serialNumber: "1234567892",
-    name: "Profitec Pro 400",
-    description:
-      "The Pro 400 is a high-performance espresso machine that is perfect for cafes and restaurants.",
-    category: "equipments",
-    subCategory: "espresso-machines",
-    price: 1000,
-    quantity: 10,
-    image: "https://picsum.photos/1920/528?2",
-    warrantyStatus: "valid",
-  },
-];
-
 const ProductsPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -198,8 +156,7 @@ const ProductsPage = () => {
 
   return (
     <div className="w-full h-full bg-amber-50">
-      <Header />
-      <div className="w-full px-4 py-2 border-t border-b border-gray-200 bg-white mt-12 flex items-center justify-between gap-4">
+      <div className="w-full px-4 py-2 border-t border-b border-gray-200 bg-white flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Select
             onValueChange={(value) => {

@@ -9,4 +9,5 @@ export type Product = {
   quantity: number;
   image: string;
   warrantyStatus: string;
+  rating: number;
 };

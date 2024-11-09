@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Product } from "@/types/product";
+import { Link } from "react-router-dom";
 
 type ProductCardProps = {
   product: Product;
@@ -28,7 +29,9 @@ export function ProductCard({ product }: ProductCardProps) {
         />
       </CardContent>
       <CardFooter className="w-full">
-        <Button className="w-full">View Product</Button>
+        <Link to={`/products/${product.id}`} className="w-full">
+          <Button className="w-full">View Product</Button>
+        </Link>
       </CardFooter>
     </Card>
   );
