@@ -1,3 +1,5 @@
+import { IdCardIcon } from "@radix-ui/react-icons";
+
 const API_URL = "http://localhost:3000/api"
 
 export async function loginRequest(email, password){
@@ -82,7 +84,7 @@ export async function fetchUserCart() {
     const user = localStorage.getItem("user")
     const parsedUser = JSON.parse(user ?? "{}")
     try {
-        const response = await fetch(`${API_URL}/cart/users/${parsedUser.user_id}/cart`, {
+        const response = await fetch(`${API_URL}/cart/${parsedUser.user_id}`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -120,7 +122,7 @@ export async function addProductToCart(productId, quantity) {
     console.log(parsedUser)
 
     try {
-        const response = await fetch(`${API_URL}/cart/users/${parsedUser.user_id}/addProductToCart`, {
+        const response = await fetch(`${API_URL}/cart/${parsedUser.user_id}/addProductToCart`, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -186,5 +188,81 @@ export async function fetchAllProducts() {
         return {
             error: (err as Error).message ?? "Unexpected error"
         }
+    }
+}
+
+export async function getProductById(id) {
+    const token = localStorage.getItem("token")
+    
+    try {
+        const response = await fetch(`${API_URL}/products/getbyid/${id}`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (response.ok) {
+            const productData = await response.json();
+
+            return {
+                success: true,
+                product: productData.product
+            }    
+
+        } else {
+            console.error("Failed to fetch product by id", response.statusText);
+            return {
+                error: "Failed to fetch product by id"
+            }
+        }
+    } catch (err) {
+        console.error("Error fetching product by id:", err);
+
+        return {
+            error: (err as Error).message ?? "Unexpected error"
+        }
+    }
+}
+
+export async function removeProductFromCart(productId, quantity) {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    const parsedUser = JSON.parse(user ?? "{}");
+    console.log(parsedUser)
+
+    try {
+        const response = await fetch(`${API_URL}/cart/${parsedUser.user_id}/removeProductFromCart`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                productId,
+                quantity
+            })
+        });
+
+        if (response.ok) {
+            const responseData = await response.json();
+
+            return {
+                success: true,
+                message: responseData.message
+            };
+        } else {
+            console.error("Failed to remove product from cart", response.statusText);
+            return {
+                error: "Failed to remove product from cart"
+            };
+        }
+    } catch (err) {
+        console.error("Error removing product from cart:", err);
+
+        return {
+            error: (err as Error).message ?? "Unexpected error"
+        };
     }
 }

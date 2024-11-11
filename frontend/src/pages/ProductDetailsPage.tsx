@@ -6,6 +6,7 @@ import { Review } from "@/types/review";
 import { Button } from "@/components/ui/button";
 import { FaRegStar, FaStarHalfAlt, FaStar } from "react-icons/fa";
 import { Textarea } from "@/components/ui/textarea";
+import { addProductToCart } from "@/lib/requests";
 
 const RatingStars = ({ rating }: { rating: number }) => {
   return (
@@ -163,6 +164,28 @@ const ProductDetailsPage = () => {
             className=""
             onClick={() => {
               // Add to cart functionality here
+              if (!localStorage.getItem("user")) {
+                const cartStr = localStorage.getItem("cart")
+                const cart: any[] = JSON.parse(cartStr ?? "[]")
+
+                const productIndexInCart = cart.findIndex((item) => item.productId === product.id);
+
+                if(productIndexInCart !== -1) {
+                  cart[productIndexInCart].quantity += quantity;
+                } else {
+                  cart.push({
+                    productId: product.id,
+                    quantity
+                  })
+                }
+
+                
+                
+                localStorage.setItem("cart", JSON.stringify(cart));
+              } else {
+                addProductToCart(product.id, quantity)
+              }
+              alert("Product added to cart!")
               console.log("Add to cart:", product.id);
             }}
           >
