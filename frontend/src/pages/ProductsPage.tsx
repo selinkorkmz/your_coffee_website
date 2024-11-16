@@ -1,6 +1,5 @@
 import { ProductCard } from "@/components/cards/ProductCard";
 import { Input } from "@/components/ui/input";
-import { DATA } from "@/lib/data";
 import {
   Select,
   SelectContent,
@@ -12,23 +11,22 @@ import {
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAllProducts } from "@/lib/requests";
+import { Product } from "@/types/product";
 
 const CATEGORIES = [
   {
-    label: "Coffee Beans",
-    value: "coffee-beans",
+    value: "Coffee",
   },
   {
-    label: "Equipments",
-    value: "equipments",
+    value: "Coffee Machine",
   },
   {
-    label: "Drinks",
-    value: "drinks",
+    value: "Drinks",
   },
   {
-    label: "Accessories",
-    value: "accessories",
+    value: "Accessories",
   },
 ];
 
@@ -123,9 +121,16 @@ const SUB_CATEGORIES = [
   },
 ];
 
-const ProductsPage = () => {
+const ProductPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchAllProducts,
+  });
+
+  console.log(products);
 
   const [category, setCategory] = useState(
     searchParams.get("category") || "coffee-beans"
@@ -135,27 +140,28 @@ const ProductsPage = () => {
   );
   const [sortBy, setSortBy] = useState("newest");
   const [search, setSearch] = useState("");
-  const [data, setData] = useState(DATA);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    const filteredData = DATA.filter((product) => {
+    const filteredData = products?.products.filter((product: Product) => {
       const matchesSearch =
         search === "" ||
         product.name.toLowerCase().includes(search.toLowerCase()) ||
+        product.model.toLowerCase().includes(search.toLowerCase()) ||
         product.description.toLowerCase().includes(search.toLowerCase());
 
       const matchesCategory = category === product.category;
-      const matchesSubCategory =
-        subCategory.includes("all") || subCategory === product.subCategory;
+      // const matchesSubCategory =
+      //   subCategory.includes("all") || subCategory === product.subCategory;
 
-      return matchesSearch && matchesCategory && matchesSubCategory;
+      return matchesSearch && matchesCategory;
     });
 
-    setData(filteredData);
-  }, [category, subCategory, search]);
+    setFilteredProducts(filteredData);
+  }, [category, subCategory, search, products]);
 
   return (
-    <div className="w-full h-full bg-amber-50">
+    <div className="w-full h-full bg-amber-50 pt-8">
       <div className="w-full px-4 py-2 border-t border-b border-gray-200 bg-white flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Select
@@ -181,7 +187,7 @@ const ProductsPage = () => {
                 <SelectLabel>Category</SelectLabel>
                 {CATEGORIES.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                    {category.value}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -235,13 +241,17 @@ const ProductsPage = () => {
       <div className="w-full px-4 py-2 mt-4">
         <h1 className="text-2xl font-bold">Products</h1>
       </div>
-      <div className="w-full px-4 py-2 mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 ">
-        {data.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+      <div className="w-full px-4 py-2 mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {isLoading ? (
+          <div>Loading...</div>
+        ) : (
+          filteredProducts?.map((product: Product) => (
+            <ProductCard key={product.product_id} product={product} />
+          ))
+        )}
       </div>
     </div>
   );
 };
 
-export default ProductsPage;
+export default ProductPage;

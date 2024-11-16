@@ -1,268 +1,265 @@
-import { IdCardIcon } from "@radix-ui/react-icons";
+const API_URL = "http://localhost:3000/api";
 
-const API_URL = "http://localhost:3000/api"
+export async function loginRequest(email, password) {
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-export async function loginRequest(email, password){
-    try {
-        const response = await fetch(`${API_URL}/auth/login`, {
-            method: "POST",
-            body: JSON.stringify({
-                email,
-                password
-            }),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-    
-        const responseBody = await response.json();
+    const responseBody = await response.json();
 
-        console.log(responseBody, response.ok)
-    
-        if (!response.ok) {
-            return {
-                error: responseBody.message
-            }
-        }
+    console.log(responseBody, response.ok);
 
-        return {
-            success: true,
-            user: responseBody.user,
-            token: responseBody.token
-        }
-    } catch (err) {
-        console.log(err)
-        return {
-            error: (err as Error).message ?? "Unexpected error"
-        }
+    if (!response.ok) {
+      return {
+        error: responseBody.message,
+      };
     }
 
-
+    return {
+      success: true,
+      user: responseBody.user,
+      token: responseBody.token,
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
 }
 
+export async function registerRequest(name, email, password) {
+  try {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        role: "Customer",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-export async function registerRequest(name, email, password){
-    try {
-        const response = await fetch(`${API_URL}/auth/register`, {
-            method: "POST",
-            body: JSON.stringify({
-                name,
-                email,
-                password,
-                role: "Customer"
-            }),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-    
-        const responseBody = await response.json();
+    const responseBody = await response.json();
 
-        console.log(responseBody, response.ok)
-    
-        if (!response.ok) {
-            return {
-                error: responseBody.message
-            }
-        }
+    console.log(responseBody, response.ok);
 
-        return {
-            success: true
-        }
-    } catch (err) {
-        console.log(err)
-        return {
-            error: (err as Error).message ?? "Unexpected error"
-        }
+    if (!response.ok) {
+      return {
+        error: responseBody.message,
+      };
     }
 
-
+    return {
+      success: true,
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
 }
 
 export async function fetchUserCart() {
-    const token = localStorage.getItem("token")
-    const user = localStorage.getItem("user")
-    const parsedUser = JSON.parse(user ?? "{}")
-    try {
-        const response = await fetch(`${API_URL}/cart/${parsedUser.user_id}`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        });
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+  const parsedUser = JSON.parse(user ?? "{}");
+  try {
+    const response = await fetch(`${API_URL}/cart/${parsedUser.user_id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-        if (response.ok) {
-            const cartData = await response.json();
+    if (response.ok) {
+      const cartData = await response.json();
 
-            return {
-                success: true,
-                cart: cartData.cart
-            }    
-
-        } else {
-            console.error("Failed to fetch user cart", response.statusText);
-            return {
-                error: "Failed to fetch user cart"
-            }
-        }
-    } catch (err) {
-        console.error("Error fetching cart:", err);
-
-        return {
-            error: (err as Error).message ?? "Unexpected error"
-        }
+      return {
+        success: true,
+        cart: cartData.cart,
+      };
+    } else {
+      console.error("Failed to fetch user cart", response.statusText);
+      return {
+        error: "Failed to fetch user cart",
+      };
     }
+  } catch (err) {
+    console.error("Error fetching cart:", err);
+
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
 }
 
-export async function addProductToCart(productId, quantity) {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
-    const parsedUser = JSON.parse(user ?? "{}");
-    console.log(parsedUser)
+export async function addProductToCart(productId: number, quantity: number) {
+  console.log(productId, quantity);
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+  const parsedUser = JSON.parse(user ?? "{}");
+  console.log(parsedUser);
 
-    try {
-        const response = await fetch(`${API_URL}/cart/${parsedUser.user_id}/addProductToCart`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                productId,
-                quantity
-            })
-        });
+  try {
+    const response = await fetch(
+      `${API_URL}/cart/${parsedUser.user_id}/addProductToCart`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId,
+          quantity,
+        }),
+      }
+    );
 
-        if (response.ok) {
-            const responseData = await response.json();
+    if (response.ok) {
+      const responseData = await response.json();
 
-            return {
-                success: true,
-                message: responseData.message
-            };
-        } else {
-            console.error("Failed to add product to cart", response.statusText);
-            return {
-                error: "Failed to add product to cart"
-            };
-        }
-    } catch (err) {
-        console.error("Error adding product to cart:", err);
-
-        return {
-            error: (err as Error).message ?? "Unexpected error"
-        };
+      return {
+        success: true,
+        message: responseData.message,
+      };
+    } else {
+      console.error("Failed to add product to cart", response.statusText);
+      return {
+        error: "Failed to add product to cart",
+      };
     }
+  } catch (err) {
+    console.error("Error adding product to cart:", err);
+
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
 }
 
 export async function fetchAllProducts() {
-    const token = localStorage.getItem("token")
-    
-    try {
-        const response = await fetch(`${API_URL}/products`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        });
+  const token = localStorage.getItem("token");
 
-        if (response.ok) {
-            const productData = await response.json();
+  try {
+    const response = await fetch(`${API_URL}/products/all`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-            return {
-                success: true,
-                products: productData.products
-            }    
+    if (response.ok) {
+      const productData = await response.json();
 
-        } else {
-            console.error("Failed to fetch user cart", response.statusText);
-            return {
-                error: "Failed to fetch user cart"
-            }
-        }
-    } catch (err) {
-        console.error("Error fetching cart:", err);
-
-        return {
-            error: (err as Error).message ?? "Unexpected error"
-        }
+      return {
+        success: true,
+        products: productData.products,
+      };
+    } else {
+      console.error("Failed to fetch user cart", response.statusText);
+      return {
+        error: "Failed to fetch user cart",
+      };
     }
+  } catch (err) {
+    console.error("Error fetching cart:", err);
+
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
 }
 
 export async function getProductById(id) {
-    const token = localStorage.getItem("token")
-    
-    try {
-        const response = await fetch(`${API_URL}/products/getbyid/${id}`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        });
+  const token = localStorage.getItem("token");
 
-        if (response.ok) {
-            const productData = await response.json();
+  try {
+    const response = await fetch(`${API_URL}/products/getbyid/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-            return {
-                success: true,
-                product: productData.product
-            }    
+    if (response.ok) {
+      const productData = await response.json();
 
-        } else {
-            console.error("Failed to fetch product by id", response.statusText);
-            return {
-                error: "Failed to fetch product by id"
-            }
-        }
-    } catch (err) {
-        console.error("Error fetching product by id:", err);
-
-        return {
-            error: (err as Error).message ?? "Unexpected error"
-        }
+      return {
+        success: true,
+        product: productData.product,
+      };
+    } else {
+      console.error("Failed to fetch product by id", response.statusText);
+      return {
+        error: "Failed to fetch product by id",
+      };
     }
+  } catch (err) {
+    console.error("Error fetching product by id:", err);
+
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
 }
 
 export async function removeProductFromCart(productId, quantity) {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
-    const parsedUser = JSON.parse(user ?? "{}");
-    console.log(parsedUser)
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+  const parsedUser = JSON.parse(user ?? "{}");
+  console.log(parsedUser);
 
-    try {
-        const response = await fetch(`${API_URL}/cart/${parsedUser.user_id}/removeProductFromCart`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                productId,
-                quantity
-            })
-        });
+  try {
+    const response = await fetch(
+      `${API_URL}/cart/${parsedUser.user_id}/removeProductFromCart`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId,
+          quantity,
+        }),
+      }
+    );
 
-        if (response.ok) {
-            const responseData = await response.json();
+    if (response.ok) {
+      const responseData = await response.json();
 
-            return {
-                success: true,
-                message: responseData.message
-            };
-        } else {
-            console.error("Failed to remove product from cart", response.statusText);
-            return {
-                error: "Failed to remove product from cart"
-            };
-        }
-    } catch (err) {
-        console.error("Error removing product from cart:", err);
-
-        return {
-            error: (err as Error).message ?? "Unexpected error"
-        };
+      return {
+        success: true,
+        message: responseData.message,
+      };
+    } else {
+      console.error("Failed to remove product from cart", response.statusText);
+      return {
+        error: "Failed to remove product from cart",
+      };
     }
+  } catch (err) {
+    console.error("Error removing product from cart:", err);
+
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
 }

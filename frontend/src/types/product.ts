@@ -1,13 +1,18 @@
 export type Product = {
-  id: number;
-  serialNumber: string;
-  name: string;
-  description: string;
   category: string;
-  subCategory: string;
+  description: string;
+  discounted_price: number | null;
+  distributor_info: string;
+  model: string;
+  name: string;
+  origin: string | null;
+  power_usage: string | null;
   price: number;
-  quantity: number;
-  image: string;
-  warrantyStatus: string;
+  product_id: number;
+  quantity_in_stock: number;
+  roast_level: string | null;
+  serial_number: string;
+  warranty_status: string;
+  image_url: string | null;
   rating: number;
 };
