@@ -7,6 +7,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
 import Header from "./components/header";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const RootLayout = () => {
   return (
@@ -18,6 +19,8 @@ const RootLayout = () => {
     </div>
   );
 };
+
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   {
@@ -52,7 +55,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
 }
 
 export default App;

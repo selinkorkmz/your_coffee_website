@@ -17,12 +17,12 @@ const CATEGORIES = [
   {
     name: "Coffee Beans",
     icon: <PiCoffeeBeanFill size={64} />,
-    to: "/products?category=coffee-beans&subCategory=all-coffee-beans",
+    to: "/products?category=Coffee&subCategory=all-Coffee",
   },
   {
     name: "Equipments",
     icon: <GiCoffeePot size={64} />,
-    to: "/products?category=equipments&subCategory=all-equipments",
+    to: "/products?category=Coffee Machine&subCategory=all-Coffee Machine",
   },
   {
     name: "Drinks",

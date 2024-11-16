@@ -18,7 +18,10 @@ const Header = () => {
         <h1 className="text-2xl font-bold">Your Coffee</h1>
       </Link>
       <nav className="flex items-center gap-4">
-        <Link to="/products" className="text-black hover:text-black">
+        <Link
+          to="/products?category=Coffee&subCategory=all-Coffee"
+          className="text-black hover:text-black"
+        >
           Products
         </Link>
         <Link to="/cart" className="text-black hover:text-black">
