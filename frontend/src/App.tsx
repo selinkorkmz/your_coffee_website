@@ -8,6 +8,9 @@ import ProductsPage from "./pages/ProductsPage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
 import Header from "./components/header";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import OrderStatusPage from "./pages/Admin/OrderStatusPage";
+import AdminLanding from "./pages/Admin/AdminLanding";
+import AuthGuard from "./components/AuthGuard";
 
 const RootLayout = () => {
   return (
@@ -49,6 +52,14 @@ const router = createBrowserRouter([
       {
         path: "/products/:id",
         element: <ProductDetailsPage />,
+      },
+      {
+        path: "/admin/order-status",
+        element: <OrderStatusPage />,
+      },
+      {
+        path: "/admin",
+        element: <AuthGuard allowedRoles={["Sales Manager", "Product Manager"]}><AdminLanding /></AuthGuard>,
       },
     ],
   },

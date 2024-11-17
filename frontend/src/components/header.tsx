@@ -29,9 +29,14 @@ const Header = () => {
         </Link>
         {user ? (
           <div className="flex items-center gap-4">
-            <Link to="/profile" className="text-black hover:text-black">
+            <Link to="/profile" className="text-black hover:text-bold">
               {user.name}
             </Link>
+            {
+              user.role !== "Customer" && <Link to="/admin" className="text-black hover:text-black">
+              Admin Panel
+            </Link>
+            }
             <p
               onClick={() => {
                 localStorage.removeItem("user");

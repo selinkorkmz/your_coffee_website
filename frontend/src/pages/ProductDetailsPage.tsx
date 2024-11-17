@@ -99,7 +99,7 @@ const ProductDetailsPage = () => {
       quantity: number;
     }) => addProductToCart(productId, quantity),
     onSuccess: () => {
-      console.log("added to cart");
+      alert("added to cart");
     },
   });
 

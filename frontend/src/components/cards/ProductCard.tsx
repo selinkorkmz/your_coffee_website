@@ -7,7 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { addProductToCart } from "@/lib/requests";
 import { Product } from "@/types/product";
+import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
 type ProductCardProps = {
@@ -15,8 +17,24 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
+
+  const { mutate: addProductToCartMutation } = useMutation({
+    mutationFn: ({
+      productId,
+      quantity,
+    }: {
+      productId: number;
+      quantity: number;
+    }) => addProductToCart(productId, quantity),
+    onSuccess: () => {
+      alert("added to cart");
+    },
+  });
+
+  
   return (
     <Card className="w-[350px]">
+      <Link to={`/products/${product.product_id}`} className="w-full">
       <CardHeader>
         <CardTitle>
           {product.name} {`- ${product.model}`}
@@ -51,7 +69,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
           <div>
             {product.quantity_in_stock > 0 ? (
-              <span className="text-sm text-green-500 font-bold">In Stock</span>
+              <span className="text-sm text-green-500 font-bold">Stock: {product.quantity_in_stock}</span>
             ) : (
               <span className="text-sm text-red-500 font-bold">
                 Out of Stock
@@ -60,10 +78,20 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
       </CardContent>
+      </Link>
       <CardFooter className="w-full">
-        <Link to={`/products/${product.product_id}`} className="w-full">
-          <Button className="w-full">View Product</Button>
-        </Link>
+      <Button
+            className="w-full"
+            onClick={() => {
+              addProductToCartMutation({
+                productId: product.product_id,
+                quantity: 1,
+              });
+            }}
+            disabled={product.quantity_in_stock === 0}
+          >
+            {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
+          </Button>
       </CardFooter>
     </Card>
   );
