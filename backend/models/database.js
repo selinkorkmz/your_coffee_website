@@ -33,12 +33,12 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         
                 // Inserting coffee product examples
-               // db.run(insert, ["Espresso Blend", "A rich and smooth espresso blend.", "Model1", "SN123", 15.99,null, 100, "1 year", "CoffeeCo", "Brazil", "Medium", null, "Coffee"]);
+                //db.run(insert, ["Espresso Blend", "A rich and smooth espresso blend.", "Model1", "SN123", 15.99,null, 100, "1 year", "CoffeeCo", "Brazil", "Medium", null, "Coffee"]);
                 //db.run(insert, ["House Blend", "Balanced and flavorful house blend.", "Model2", "SN124", 12.99, null,50, "6 months", "CoffeeCo", "Colombia", "Dark", null, "Coffee"]);
         
                 // Inserting coffee machine examples
-               // db.run(insert, ["Espresso Machine", "High-quality espresso machine.", "X100", "SN200", 199.99,null, 20, "2 years", "MachineMakers", null, null, "1500W", "Coffee Machine"]);
-                //db.run(insert, ["Drip Coffee Maker", "Easy-to-use drip coffee maker.", "D200", "SN201", 49.99,null, 30, "1 year", "MachineMakers", null, null, "800W", "Coffee Machine"]);
+              // db.run(insert, ["Espresso Machine", "High-quality espresso machine.", "X100", "SN200", 199.99,null, 20, "2 years", "MachineMakers", null, null, "1500W", "Coffee Machine"]);
+            //db.run(insert, ["Drip Coffee Maker", "Easy-to-use drip coffee maker.", "D200", "SN201", 49.99,null, 30, "1 year", "MachineMakers", null, null, "800W", "Coffee Machine"]);
             }
         });
 
@@ -111,15 +111,16 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             }
         });
 
-     
+        
         // Create Ratings table for reviews and ratings on products
         db.run(`CREATE TABLE IF NOT EXISTS Ratings (
             review_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             product_id INTEGER,
-            rating INTEGER CHECK(rating BETWEEN 1 AND 5),
+            rating REAL CHECK(rating >= 1.0 AND rating <= 5.0),
             comment TEXT,
             approved BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES Users(user_id),
             FOREIGN KEY (product_id) REFERENCES Products(product_id)
         )`, (err) => {
@@ -127,6 +128,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                 console.error('Ratings table creation error:', err.message);
             }
         });
+        
 
         // Create Invoices table
         db.run(`CREATE TABLE IF NOT EXISTS Invoices (

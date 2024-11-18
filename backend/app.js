@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes.js");
 const cartRoutes = require("./routes/cartRoutes.js");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const reviewRoutes= require("./routes/reviewRoutes.js")
 // Middleware to parse JSON request bodies
 app.use(express.json());
 app.use(cors());
@@ -18,6 +19,7 @@ app.use("/api/auth", authRoutes); // Prefix for authentication routes
 app.use("/api/cart", cartRoutes); // Prefix for cart routes
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // Middleware to serve static files (HTML, CSS, JS) from the public folder
 app.use(express.static("public"));
