@@ -37,7 +37,8 @@ router.get('/user/:userId', authenticateJWT, (req, res) => {
 
     // Ensure only the authenticated user can access their orders
     if (userId !== req.user.userId.toString()) {
-        return res.status(403).json({ message: 'Unauthorized access to orders.' });
+        return res.status(403).json({ message: 'Unauthorized access to orders.' });   
+        
     }
 
     getAllOrdersByUserId(userId, (err, orders) => {
