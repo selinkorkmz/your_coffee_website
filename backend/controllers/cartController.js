@@ -48,6 +48,7 @@ const removeFromCart = (userId, productId, quantity, callback) => {
 };
 
 
+
 // Helper function to add or update cart entry
 const addOrUpdateCart = (userId, product, quantity, callback) => {
     // Check if the product is already in the user's shopping cart
@@ -63,37 +64,27 @@ const addOrUpdateCart = (userId, product, quantity, callback) => {
 
             db.run(updateCartQuery, [newQuantity, userId, product.product_id], (updateErr) => {
                 if (updateErr) return callback(updateErr);
-                decreaseStock(product.product_id, quantity, callback);
+                callback(null, 'Product quantity updated in the cart.');
             });
         } else {
             // Product not in cart, insert new entry with all details
             const insertCartQuery = `
                 INSERT INTO ShoppingCart 
-                (user_id, product_id, quantity, name, description, model, serial_number, price,discounted_price, quantity_in_stock, warranty_status, distributor_info, origin, roast_level, power_usage, category) 
+                (user_id, product_id, quantity, name, description, model, serial_number, price, discounted_price, quantity_in_stock, warranty_status, distributor_info, origin, roast_level, power_usage, category) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
             db.run(insertCartQuery, [
                 userId, product.product_id, quantity,
                 product.name, product.description, product.model, product.serial_number,
-                product.price,product.discounted_price, product.quantity_in_stock, product.warranty_status,
+                product.price, product.discounted_price, product.quantity_in_stock, product.warranty_status,
                 product.distributor_info, product.origin, product.roast_level,
                 product.power_usage, product.category
             ], (insertErr) => {
                 if (insertErr) return callback(insertErr);
-                decreaseStock(product.product_id, quantity, callback);
+                callback(null, 'Product added to the cart.');
             });
         }
-    });
-};
-
-// Helper function to decrease product stock
-const decreaseStock = (productId, quantity, callback) => {
-    const stockUpdateQuery = `UPDATE Products SET quantity_in_stock = quantity_in_stock - ? WHERE product_id = ?`;
-
-    db.run(stockUpdateQuery, [quantity, productId], (err) => {
-        if (err) return callback(err);
-        callback(null, 'Product added to cart successfully.');
     });
 };
 
