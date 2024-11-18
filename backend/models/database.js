@@ -90,7 +90,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         
         db.run(`CREATE TABLE IF NOT EXISTS Orders (
             order_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
+            user_id INTEGER NOT NULL,
             product_id INTEGER,
             quantity INTEGER NOT NULL,
             price_at_purchase REAL NOT NULL,
@@ -111,7 +111,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             }
         });
 
-        
+     
         // Create Ratings table for reviews and ratings on products
         db.run(`CREATE TABLE IF NOT EXISTS Ratings (
             review_id INTEGER PRIMARY KEY AUTOINCREMENT,
