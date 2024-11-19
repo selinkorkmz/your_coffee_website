@@ -5,6 +5,9 @@ const {
     getProductReviews,
     moderateReview,
 } = require('../controllers/reviewController');
+const authenticateJWT = require('../middlewares/authMiddleware.js'); // JWT authentication middleware
+const authorizeRole = require('../middlewares/authorizeRole.js'); // Role-based authorization middleware
+
 const router = express.Router();
 
 // Error handling middleware
@@ -14,7 +17,7 @@ const asyncHandler = (fn) => (req, res, next) => {
 
 // Submit a comment
 router.post(
-    '/:productId/comments',
+    '/:productId/comments',authenticateJWT, authorizeRole(['Customer']),
     asyncHandler(async (req, res) => {
         try {
             const { userId, comment } = req.body;
@@ -28,7 +31,7 @@ router.post(
 
 // Submit a rating
 router.post(
-    '/:productId/ratings',
+    '/:productId/ratings',authenticateJWT, authorizeRole(['Customer']),
     asyncHandler(async (req, res) => {
         try {
             const { userId, rating } = req.body;
@@ -55,7 +58,7 @@ router.get(
 
 // Moderate a review
 router.put(
-    '/:reviewId/moderate',
+    '/:reviewId/moderate', authenticateJWT, authorizeRole(['Product Manager', 'Admin']),
     asyncHandler(async (req, res) => {
         try {
             const { approved } = req.body;
