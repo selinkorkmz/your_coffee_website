@@ -172,6 +172,35 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                 console.error('ShoppingCart table creation error:', err.message);
             }
         });
+
+        db.run(`CREATE TABLE IF NOT EXISTS Wishlist (
+            wishlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            product_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT,
+            model TEXT,
+            serial_number TEXT NOT NULL,
+            price REAL NOT NULL,
+            discounted_price REAL,
+            quantity_in_stock INTEGER NOT NULL,
+            warranty_status TEXT,
+            distributor_info TEXT,
+            origin TEXT,
+            roast_level TEXT,
+            power_usage TEXT,
+            category TEXT CHECK(category IN ('Coffee', 'Coffee Machine')) NOT NULL,
+            added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES Users(user_id),
+            FOREIGN KEY (product_id) REFERENCES Products(product_id)
+        )`, (err) => {
+            if (err) {
+                console.error('Wishlist table creation error:', err.message);
+            } else {
+                console.log('Wishlist table created successfully.');
+            }
+        });
+        
     }
 });
 
