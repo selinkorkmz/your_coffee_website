@@ -12,114 +12,8 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchAllProducts } from "@/lib/requests";
+import { fetchAllCategories, fetchAllProducts } from "@/lib/requests";
 import { Product } from "@/types/product";
-
-const CATEGORIES = [
-  {
-    value: "Coffee",
-  },
-  {
-    value: "Coffee Machine",
-  },
-  {
-    value: "Drinks",
-  },
-  {
-    value: "Accessories",
-  },
-];
-
-const SUB_CATEGORIES = [
-  {
-    value: "coffee-beans",
-    subCategories: [
-      {
-        label: "All",
-        value: "all-coffee-beans",
-      },
-      {
-        label: "Espresso Beans",
-        value: "espresso-beans",
-      },
-      {
-        label: "French Roast",
-        value: "french-roast",
-      },
-      {
-        label: "House Blend",
-        value: "house-blend",
-      },
-    ],
-  },
-  {
-    value: "equipments",
-    subCategories: [
-      {
-        label: "All",
-        value: "all-equipments",
-      },
-      {
-        label: "Espresso Machines",
-        value: "espresso-machines",
-      },
-      {
-        label: "Grinders",
-        value: "grinders",
-      },
-      {
-        label: "French Press",
-        value: "french-press",
-      },
-      {
-        label: "Pour Over",
-        value: "pour-over",
-      },
-    ],
-  },
-  {
-    value: "drinks",
-    subCategories: [
-      {
-        label: "All",
-        value: "all-drinks",
-      },
-      {
-        label: "Cold Brew",
-        value: "cold-brew",
-      },
-      {
-        label: "Iced Coffee",
-        value: "iced-coffee",
-      },
-      {
-        label: "Iced Latte",
-        value: "iced-latte",
-      },
-    ],
-  },
-  {
-    value: "accessories",
-    subCategories: [
-      {
-        label: "All",
-        value: "all-accessories",
-      },
-      {
-        label: "Coffee Cups",
-        value: "coffee-cups",
-      },
-      {
-        label: "Coffee Filters",
-        value: "coffee-filters",
-      },
-      {
-        label: "Vacuum Bottles",
-        value: "vacuum-bottles",
-      },
-    ],
-  },
-];
 
 const ProductPage = () => {
   const navigate = useNavigate();
@@ -130,20 +24,23 @@ const ProductPage = () => {
     queryFn: fetchAllProducts,
   });
 
+  const { data: categories, isLoading: isCategoriesLoading } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchAllCategories,
+  });
+
   console.log(products);
 
   const [category, setCategory] = useState(
-    searchParams.get("category") || "coffee-beans"
+    searchParams.get("category") || "Coffee"
   );
-  const [subCategory, setSubCategory] = useState(
-    searchParams.get("subCategory") || "all-coffee-beans"
-  );
+
   const [sortBy, setSortBy] = useState("newest");
   const [search, setSearch] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    const filteredData = products?.products.filter((product: Product) => {
+    const filteredData = (products?.products  ?? []).filter((product: Product) => {
       const matchesSearch =
         search === "" ||
         product.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -151,14 +48,12 @@ const ProductPage = () => {
         product.description.toLowerCase().includes(search.toLowerCase());
 
       const matchesCategory = category === product.category;
-      // const matchesSubCategory =
-      //   subCategory.includes("all") || subCategory === product.subCategory;
 
       return matchesSearch && matchesCategory;
     });
 
     setFilteredProducts(filteredData);
-  }, [category, subCategory, search, products]);
+  }, [category, search, products]);
 
   return (
     <div className="w-full h-full bg-amber-50 pt-8">
@@ -167,14 +62,10 @@ const ProductPage = () => {
           <Select
             onValueChange={(value) => {
               setCategory(value);
-              const subCategory = SUB_CATEGORIES.find(
-                (sub) => sub.value === value
-              )?.subCategories[0].value;
-              setSubCategory(subCategory || "");
 
               // UPDATE URL
               navigate(
-                `/products?category=${value}&subCategory=${subCategory}`
+                `/products?category=${value}`
               );
             }}
             value={category}
@@ -185,32 +76,9 @@ const ProductPage = () => {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Category</SelectLabel>
-                {CATEGORIES.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.value}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(value) => {
-              setSubCategory(value);
-              navigate(`/products?category=${category}&subCategory=${value}`);
-            }}
-            value={subCategory}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sub Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Sub Category</SelectLabel>
-                {SUB_CATEGORIES.find(
-                  (sub) => sub.value === category
-                )?.subCategories.map((sub) => (
-                  <SelectItem key={sub.value} value={sub.value}>
-                    {sub.label}
+                {(categories?.categories ?? []).map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
                   </SelectItem>
                 ))}
               </SelectGroup>

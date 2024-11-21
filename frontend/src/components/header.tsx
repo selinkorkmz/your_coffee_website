@@ -19,7 +19,7 @@ const Header = () => {
       </Link>
       <nav className="flex items-center gap-4">
         <Link
-          to="/products?category=Coffee&subCategory=all-Coffee"
+          to="/products"
           className="text-black hover:text-black"
         >
           Products

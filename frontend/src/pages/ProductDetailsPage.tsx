@@ -189,7 +189,6 @@ const ProductDetailsPage = () => {
               {product.warranty_status && (
                 <li>Warranty Status: {product.warranty_status}</li>
               )}
-              {/* <li>Subcategory: {product.subCategory}</li> */}
             </ul>
           </div>
 

@@ -17,22 +17,22 @@ const CATEGORIES = [
   {
     name: "Coffee Beans",
     icon: <PiCoffeeBeanFill size={64} />,
-    to: "/products?category=Coffee&subCategory=all-Coffee",
+    to: "/products?category=Coffee",
   },
   {
     name: "Equipments",
     icon: <GiCoffeePot size={64} />,
-    to: "/products?category=Coffee Machine&subCategory=all-Coffee Machine",
+    to: "/products?category=Coffee Machine",
   },
   {
-    name: "Drinks",
+    name: " Other Drinks",
     icon: <CiCoffeeCup size={64} />,
-    to: "/products?category=drinks&subCategory=all-drinks",
+    to: "/products?category=Drinks",
   },
   {
     name: "Accessories",
     icon: <TbBowlSpoonFilled size={64} />,
-    to: "/products?category=accessories&subCategory=all-accessories",
+    to: "/products?category=Accessories",
   },
 ];
 const IMAGES = [

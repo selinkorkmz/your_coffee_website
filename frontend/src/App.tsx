@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import OrderStatusPage from "./pages/Admin/OrderStatusPage";
 import AdminLanding from "./pages/Admin/AdminLanding";
 import AuthGuard from "./components/AuthGuard";
+import ProfilePage from "./pages/Profile/ProfilePage";
 
 const RootLayout = () => {
   return (
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
       {
         path: "/admin/order-status",
         element: <OrderStatusPage />,
+      },
+      {
+        path: "/profile",
+        element: <ProfilePage />,
       },
       {
         path: "/admin",

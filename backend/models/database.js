@@ -23,7 +23,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             origin TEXT,
             roast_level TEXT,
             power_usage TEXT,
-            category TEXT CHECK(category IN ('Coffee', 'Coffee Machine')) NOT NULL
+            category TEXT NOT NULL
         )`, (err) => {
             if (err) {
                 console.error('Products table creation error:', err.message);

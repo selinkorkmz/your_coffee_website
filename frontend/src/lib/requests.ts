@@ -220,6 +220,40 @@ export async function getProductById(id) {
   }
 }
 
+export async function fetchAllCategories() {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/products/categories`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const productData = await response.json();
+
+      return {
+        success: true,
+        categories: productData.categories,
+      };
+    } else {
+      console.error("Failed to fetch user cart", response.statusText);
+      return {
+        error: "Failed to fetch user cart",
+      };
+    }
+  } catch (err) {
+    console.error("Error fetching cart:", err);
+
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
 export async function removeProductFromCart(productId, quantity) {
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
