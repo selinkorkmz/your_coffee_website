@@ -15,6 +15,19 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAllCategories, fetchAllProducts } from "@/lib/requests";
 import { Product } from "@/types/product";
 
+function getPriceDifference(productA: Product, productB: Product) {
+  if (productA.discounted_price && productB.discounted_price) {
+    return productA.discounted_price - productB.discounted_price;
+  }
+  if (productA.discounted_price) {
+    return productA.discounted_price - productB.price;
+  }
+  if (productB.discounted_price) {
+    return productA.price - productB.discounted_price;
+  }
+  return productA.price - productB.price;
+}
+
 const ProductPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -24,36 +37,46 @@ const ProductPage = () => {
     queryFn: fetchAllProducts,
   });
 
-  const { data: categories, isLoading: isCategoriesLoading } = useQuery({
+  const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchAllCategories,
   });
-
-  console.log(products);
 
   const [category, setCategory] = useState(
     searchParams.get("category") || "Coffee"
   );
 
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("default");
   const [search, setSearch] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    const filteredData = (products?.products  ?? []).filter((product: Product) => {
-      const matchesSearch =
-        search === "" ||
-        product.name.toLowerCase().includes(search.toLowerCase()) ||
-        product.model.toLowerCase().includes(search.toLowerCase()) ||
-        product.description.toLowerCase().includes(search.toLowerCase());
+    const filteredData = (products?.products ?? []).filter(
+      (product: Product) => {
+        const matchesSearch =
+          search === "" ||
+          product.name.toLowerCase().includes(search.toLowerCase()) ||
+          product.model.toLowerCase().includes(search.toLowerCase()) ||
+          product.description.toLowerCase().includes(search.toLowerCase());
 
-      const matchesCategory = category === product.category;
+        const matchesCategory = category === product.category;
 
-      return matchesSearch && matchesCategory;
-    });
+        return matchesSearch && matchesCategory;
+      }
+    );
+
+    if (sortBy === "price-asc") {
+      filteredData.sort((a: Product, b: Product) => {
+        return getPriceDifference(a, b);
+      });
+    } else if (sortBy === "price-desc") {
+      filteredData.sort((a: Product, b: Product) => {
+        return getPriceDifference(b, a);
+      });
+    }
 
     setFilteredProducts(filteredData);
-  }, [category, search, products]);
+  }, [category, search, products, sortBy]);
 
   return (
     <div className="w-full h-full bg-amber-50 pt-8">
@@ -64,9 +87,7 @@ const ProductPage = () => {
               setCategory(value);
 
               // UPDATE URL
-              navigate(
-                `/products?category=${value}`
-              );
+              navigate(`/products?category=${value}`);
             }}
             value={category}
           >
@@ -76,7 +97,7 @@ const ProductPage = () => {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Category</SelectLabel>
-                {(categories?.categories ?? []).map((category) => (
+                {(categories?.categories ?? []).map((category: string) => (
                   <SelectItem key={category} value={category}>
                     {category}
                   </SelectItem>
@@ -98,8 +119,7 @@ const ProductPage = () => {
               <SelectValue placeholder="Sort By" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="default">Default</SelectItem>
               <SelectItem value="price-asc">Price: Low to High</SelectItem>
               <SelectItem value="price-desc">Price: High to Low</SelectItem>
             </SelectContent>
