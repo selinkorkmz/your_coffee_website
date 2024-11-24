@@ -1,12 +1,16 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { REVIEWS } from "@/lib/data";
 import { Product } from "@/types/product"; // You'll need to create this type
 import { Review } from "@/types/review";
 import { Button } from "@/components/ui/button";
 import { FaRegStar, FaStarHalfAlt, FaStar } from "react-icons/fa";
 import { Textarea } from "@/components/ui/textarea";
-import { getProductById, addProductToCart } from "@/lib/requests";
+import {
+  getProductById,
+  addProductToCart,
+  submitReview,
+  getReviews,
+} from "@/lib/requests";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 const RatingStars = ({ rating }: { rating: number }) => {
@@ -83,11 +87,17 @@ const ProductDetailsPage = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(0);
+  const [totalRating, setTotalRating] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
   const { data: productData, isLoading } = useQuery({
     queryKey: ["product", id],
     queryFn: () => getProductById(id),
+  });
+
+  const { data: reviewsData } = useQuery({
+    queryKey: ["reviews", id],
+    queryFn: () => getReviews(Number(id)),
   });
 
   const { mutate: addProductToCartMutation } = useMutation({
@@ -103,10 +113,33 @@ const ProductDetailsPage = () => {
     },
   });
 
+  const { mutate: submitReviewMutation, isPending: isSubmittingReview } =
+    useMutation({
+      mutationFn: ({
+        productId,
+        comment,
+        rating,
+      }: {
+        productId: number;
+        comment: string;
+        rating: number;
+      }) => submitReview(productId, comment, rating),
+      onSuccess: () => {
+        alert("Review submitted successfully");
+      },
+    });
+
   useEffect(() => {
-    setReviews(REVIEWS);
+    setReviews(reviewsData?.reviews ?? []);
     setProduct(productData?.product);
-  }, [id, navigate, productData]);
+
+    const totalRating = reviewsData?.reviews.reduce(
+      (acc: number, review: Review) => acc + review.rating,
+      0
+    );
+    const averageRating = totalRating / reviewsData?.reviews.length;
+    setTotalRating(averageRating ? Number(averageRating.toFixed(1)) : 0);
+  }, [id, navigate, productData, reviewsData]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -135,9 +168,7 @@ const ProductDetailsPage = () => {
         <div className="flex flex-col gap-4">
           <h1 className="text-3xl font-bold">
             {product.name}{" "}
-            <span className="text-sm text-gray-500">
-              {product.rating || 0}/5
-            </span>
+            <span className="text-sm text-gray-500">{totalRating || 0}/5</span>
           </h1>
           <p className="text-gray-600">{product.description}</p>
 
@@ -240,11 +271,9 @@ const ProductDetailsPage = () => {
           {/* Reviews Summary */}
           <div className="mb-8">
             <div className="flex items-center gap-4">
-              <span className="text-4xl font-bold">
-                {product.rating?.toFixed(1)}
-              </span>
+              <span className="text-4xl font-bold">{totalRating}</span>
               <div>
-                <RatingStars rating={product.rating} />
+                <RatingStars rating={totalRating} />
                 <p className="text-sm text-gray-500 mt-1">
                   Based on {reviews.length} reviews
                 </p>
@@ -261,7 +290,19 @@ const ProductDetailsPage = () => {
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
             />
-            <Button className="mb-8">Write a Review</Button>
+            <Button
+              className="mb-8"
+              onClick={() => {
+                submitReviewMutation({
+                  productId: product.product_id,
+                  comment: reviewText,
+                  rating,
+                });
+              }}
+              disabled={isSubmittingReview}
+            >
+              {isSubmittingReview ? "Submitting..." : "Write a Review"}
+            </Button>
           </div>
 
           {/* Reviews List */}
@@ -273,9 +314,6 @@ const ProductDetailsPage = () => {
                     <p className="font-semibold">{review.userName}</p>
                     <div className="flex items-center gap-2">
                       <RatingStars rating={review.rating} />
-                      <span className="text-sm text-gray-500">
-                        {new Date(review.date).toLocaleDateString()}
-                      </span>
                     </div>
                   </div>
                 </div>

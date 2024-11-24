@@ -297,3 +297,78 @@ export async function removeProductFromCart(productId, quantity) {
     };
   }
 }
+
+export async function submitReview(
+  productId: number,
+  comment: string,
+  rating: number
+) {
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    return {
+      error: "Please login to submit a review",
+    };
+  }
+
+  const userId = JSON.parse(user).userId;
+
+  try {
+    await fetch(`${API_URL}/reviews/${productId}/comments`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        comment,
+      }),
+    });
+
+    await fetch(`${API_URL}/reviews/${productId}/ratings`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        rating,
+      }),
+    });
+  } catch (err) {
+    console.error("Error submitting review:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function getReviews(productId: number) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/reviews/${productId}/reviews`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const reviews = await response.json();
+      return {
+        success: true,
+        reviews: reviews.reviews,
+      };
+    }
+  } catch (err) {
+    console.error("Error fetching reviews:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
