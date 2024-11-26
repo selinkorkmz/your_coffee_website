@@ -1,49 +1,5 @@
 const db = require('../models/database.js');
 
-// Function to confirm payment and create an order from cart items
-
-const confirmPaymentAndCreateOrder = (userId, paymentId, callback) => {
-    const getCartQuery = `SELECT * FROM ShoppingCart WHERE user_id = ?`;
-
-    db.all(getCartQuery, [userId], (err, cartItems) => {
-        if (err) return callback(err);
-        if (!cartItems || cartItems.length === 0) return callback(new Error('Cart is empty.'));
-
-        const orderDate = new Date().toISOString();
-        const orderStatus = 'Processing';
-
-        const createOrderQuery = `
-            INSERT INTO Orders (user_id, product_id, quantity, price_at_purchase, total_price, order_status, order_date, payment_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'Completed')
-        `;
-
-        cartItems.forEach((item) => {
-            const priceAtPurchase = item.discounted_price !== null ? item.discounted_price : item.price;
-            const totalPrice = priceAtPurchase * item.quantity;
-
-            db.run(createOrderQuery, [userId, item.product_id, item.quantity, priceAtPurchase, totalPrice, orderStatus, orderDate], function (orderErr) {
-                if (orderErr) return callback(orderErr);
-
-                // Decrease stock
-                const updateStockQuery = `UPDATE Products SET quantity_in_stock = quantity_in_stock - ? WHERE product_id = ?`;
-                db.run(updateStockQuery, [item.quantity, item.product_id], (stockErr) => {
-                    if (stockErr) return callback(stockErr);
-                });
-
-                // Clear cart
-                const clearCartQuery = `DELETE FROM ShoppingCart WHERE user_id = ?`;
-                db.run(clearCartQuery, [userId], (clearErr) => {
-                    if (clearErr) return callback(clearErr);
-                    callback(null, { message: 'Order created successfully.', orderId: this.lastID });
-                });
-            });
-        });
-    });
-};
-
-
-
-
 const getOrderDetails = (orderId, callback) => {
     const query = `SELECT * FROM Orders WHERE order_id = ?`;
 
@@ -171,4 +127,4 @@ const processReturn = (orderId, callback) => {
     });
 };
 
-module.exports = { confirmPaymentAndCreateOrder, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, handlePaymentConfirmation, cancelOrder, processReturn };
+module.exports = { getOrderDetails, getAllOrdersByUserId, updateOrderStatus, handlePaymentConfirmation, cancelOrder, processReturn };

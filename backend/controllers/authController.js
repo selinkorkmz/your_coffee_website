@@ -59,7 +59,7 @@ const signInUser = (email, password, callback) => {
         }
 
         // Generate a JWT token
-        const token = jwt.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: '888888h' });
 
         // Return user and token
         callback(null, { token, user });

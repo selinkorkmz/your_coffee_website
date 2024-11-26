@@ -2,31 +2,18 @@ const express = require('express');
 const router = express.Router();
 const authenticateJWT = require('../middlewares/authMiddleware');
 const {
-    initiateCartPayment,
-    confirmCartPayment,
+    pay,
     getOrderPaymentStatus
 } = require('../controllers/paymentController.js');
 
 // Route to initiate payment
-router.post('/initiate', authenticateJWT, (req, res) => {
+router.post('/pay', authenticateJWT, (req, res) => {
     const userId = req.user.userId;
-    const { paymentMethod } = req.body;
+    const { cardDetails, deliveryAddress } = req.body;
 
-    initiateCartPayment(userId, paymentMethod, (err, result) => {
+    pay(userId, cardDetails, deliveryAddress, (err, result) => {
         if (err) return res.status(400).json({ message: err.message });
         res.status(201).json(result);
-    });
-});
-
-
-// Route to confirm payment (simulating banking confirmation)
-router.put('/confirm/:orderId', authenticateJWT, (req, res) => {
-    const userId = req.user.userId;
-    const orderId = req.params.orderId;
-
-    confirmCartPayment(userId, orderId, (err, message) => {
-        if (err) return res.status(400).json({ message: err.message });
-        res.status(200).json({ message });
     });
 });
 

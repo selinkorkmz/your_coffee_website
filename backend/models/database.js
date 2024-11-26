@@ -86,14 +86,11 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                 })
             }
         });
-        
+    
         
         db.run(`CREATE TABLE IF NOT EXISTS Orders (
             order_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
-            product_id INTEGER,
-            quantity INTEGER NOT NULL,
-            price_at_purchase REAL NOT NULL,
             total_price REAL NOT NULL,
             order_status TEXT CHECK(order_status IN ('Processing', 'In-Transit', 'Delivered', 'Canceled', 'Returned')) DEFAULT 'Processing',
             order_date DATE NOT NULL,
@@ -101,8 +98,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             payment_status TEXT CHECK(payment_status IN ('Pending', 'Completed', 'Failed')) DEFAULT 'Pending',
             payment_method TEXT,
             transaction_date DATE,
-            FOREIGN KEY (user_id) REFERENCES Users(user_id),
-            FOREIGN KEY (product_id) REFERENCES Products(product_id)
+            FOREIGN KEY (user_id) REFERENCES Users(user_id)
         )`, (err) => {
             if (err) {
                 console.error('Orders table creation error:', err.message);
@@ -111,7 +107,25 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             }
         });
 
-        
+        db.run(`CREATE TABLE IF NOT EXISTS OrderItems (
+            order_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            product_id INTEGER,
+            order_id INTEGER,
+            quantity INTEGER NOT NULL,
+            price_at_purchase REAL NOT NULL,
+            total_price REAL NOT NULL,
+            FOREIGN KEY (product_id) REFERENCES Products(product_id),
+            FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+        )`, (err) => {
+            if (err) {
+                console.error('Orders Items table creation error:', err.message);
+            } else {
+                console.log('Orders Items table created successfully.');
+            }
+        });
+
+
+
         // Create Ratings table for reviews and ratings on products
         db.run(`CREATE TABLE IF NOT EXISTS Ratings (
             review_id INTEGER PRIMARY KEY AUTOINCREMENT,

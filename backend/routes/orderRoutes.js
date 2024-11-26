@@ -3,7 +3,6 @@ const router = express.Router();
 const authenticateJWT = require('../middlewares/authMiddleware');
 const authorizeRole = require('../middlewares/authorizeRole');
 const {
-    confirmPaymentAndCreateOrder,
     getOrderDetails,
     getAllOrdersByUserId,
     updateOrderStatus,
@@ -11,16 +10,7 @@ const {
     processReturn
 } = require('../controllers/orderController');
 
-// Route to confirm payment and create an order from cart items
-router.post('/confirm', authenticateJWT, (req, res) => {
-    const userId = req.user.userId; // Extract user ID from JWT
-    const { paymentId } = req.body;
 
-    confirmPaymentAndCreateOrder(userId, paymentId, (err, result) => {
-        if (err) return res.status(400).json({ message: err.message });
-        res.status(201).json(result);
-    });
-});
 
 // Route to retrieve order details
 router.get('/details/:orderId', authenticateJWT, (req, res) => {
