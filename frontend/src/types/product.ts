@@ -16,3 +16,5 @@ export type Product = {
   image_url: string | null;
   rating: number;
 };
+
+export type CartProduct = Product & { quantity: number }

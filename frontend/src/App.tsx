@@ -12,6 +12,7 @@ import OrderStatusPage from "./pages/Admin/OrderStatusPage";
 import AdminLanding from "./pages/Admin/AdminLanding";
 import AuthGuard from "./components/AuthGuard";
 import ProfilePage from "./pages/Profile/ProfilePage";
+import { AuthProvider } from "./components/AuthContext";
 
 const RootLayout = () => {
   return (
@@ -73,7 +74,9 @@ const router = createBrowserRouter([
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

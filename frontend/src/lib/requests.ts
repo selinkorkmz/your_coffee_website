@@ -1,3 +1,5 @@
+import { stringify } from "querystring";
+
 const API_URL = "http://localhost:3000/api";
 
 export async function loginRequest(email, password) {
@@ -372,3 +374,57 @@ export async function getReviews(productId: number) {
     };
   }
 }
+
+export async function initiatePayment() {
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    return {
+      error: "Please login to purchase your cart",
+    };
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/payments/initiate`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        paymentMethod: "Card"
+      }),
+    });
+
+    if (response.ok) {
+      const orderId = await response.json();
+      return {
+        success: true,
+        orderId: orderId.orderId,
+      };
+    }
+  
+  } catch (err) {
+    console.error("Error initiating payment:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function updateCartProduct(productId: number, quantity: number) {
+  const response = await fetch(`/api/cart/${productId}`, {
+      method: "PUT",
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quantity }),
+  });
+
+  if (!response.ok) {
+      throw new Error("Failed to update cart product");
+  }
+
+  return response.json();
+} 

@@ -157,7 +157,7 @@ const ProductDetailsPage = () => {
           <img
             src={
               productData.product.image_url ??
-              "https://fastly.picsum.photos/id/503/200/300.jpg?hmac=NvjgwV94HmYqnTok1qtlPsDxdf197x8fsWy5yheKlGg"
+              "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg"
             }
             alt={product.name}
             className="w-full h-full object-cover"

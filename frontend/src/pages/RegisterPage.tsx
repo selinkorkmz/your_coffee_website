@@ -1,3 +1,4 @@
+import { useAuth } from "@/components/AuthContext";
 import { loginRequest, registerRequest } from "@/lib/requests";
 import React, { useState } from "react"
 import { PiCoffeeBeanFill } from "react-icons/pi"
@@ -8,6 +9,7 @@ function RegisterPage() {
 
     const [errorMessage, setErrorMessage] = useState()
     const navigate = useNavigate();
+    const { setUser } = useAuth();
 
     const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -34,7 +36,7 @@ function RegisterPage() {
                     localStorage.setItem("token", JSON.stringify(result.token))
                 }        
     
-    
+                setUser(result.user);
                 navigate("/")
             })
         })
