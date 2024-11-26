@@ -96,64 +96,81 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
       ],
       function (err) {
         if (err) return callback(new Error("Payment processing failed."));
+        console.log(this);
         orderId = this.lastID;
-      }
-    );
 
-    const createOrderItemQuery = `
+        const createOrderItemQuery = `
             INSERT INTO OrderItems (product_id, order_id, quantity, price_at_purchase, total_price)
             VALUES (?, ?, ?, ?,?)
         `;
-    let errorOccurred = false;
+        let errorOccurred = false;
 
-    cartItems.forEach((item) => {
-      const priceAtPurchase = item.discounted_price || item.price;
-      const totalPrice = priceAtPurchase * item.quantity;
+        cartItems.forEach((item) => {
+          const priceAtPurchase = item.discounted_price || item.price;
+          const totalPrice = priceAtPurchase * item.quantity;
 
-      db.run(
-        createOrderItemQuery,
-        [item.product_id, orderId, item.quantity, priceAtPurchase, totalPrice],
-        function (err) {
-          if (err) {
-            errorOccurred = true;
+          db.run(
+            createOrderItemQuery,
+            [
+              item.product_id,
+              orderId,
+              item.quantity,
+              priceAtPurchase,
+              totalPrice,
+            ],
+            function (err) {
+              console.log("orderitem oluşturuyorum");
+              if (err) {
+                errorOccurred = true;
+                console.log("errrrr", err);
+              }
+            }
+          );
+
+          // Decrease stock
+          const updateStockQuery = `UPDATE Products SET quantity_in_stock = quantity_in_stock - ? WHERE product_id = ?`;
+          db.run(
+            updateStockQuery,
+            [item.quantity, item.product_id],
+            (stockErr) => {
+              if (stockErr) return callback(stockErr);
+            }
+          );
+
+
+
+          if (errorOccurred) {
+            return callback(new Error("Payment processing failed."));
           }
-        }
-      );
-
-      // Decrease stock
-      const updateStockQuery = `UPDATE Products SET quantity_in_stock = quantity_in_stock - ? WHERE product_id = ?`;
-      db.run(updateStockQuery, [item.quantity, item.product_id], (stockErr) => {
-        if (stockErr) return callback(stockErr);
-      });
-    });
-
-    if (errorOccurred) {
-      return callback(new Error("Payment processing failed."));
-    }
-
-    generateInvoicePDF(
-      userId,
-      totalOrderPrice,
-      cartItems,
-      (pdfErr, pdfPath) => {
-        if (pdfErr) {
-          return callback(pdfErr);
-        }
-        sendInvoiceEmail(userId, pdfPath, (emailErr) => {
-          if (emailErr) return callback(emailErr);
-          console.log("Payment successful and invoice emailed.");
         });
+
+        generateInvoicePDF(
+            userId,
+            totalOrderPrice,
+            cartItems,
+            (pdfErr, pdfPath) => {
+              if (pdfErr) {
+                return callback(pdfErr);
+              }
+              sendInvoiceEmail(userId, pdfPath, (emailErr) => {
+                if (emailErr) return callback(emailErr);
+                console.log("Payment successful and invoice emailed.");
+              });
+            }
+          );
+      
+          // Clear the cart after payment confirmation
+          const clearCartQuery = `DELETE FROM ShoppingCart WHERE user_id = ?`;
+          db.run(clearCartQuery, [userId], (clearErr) => {
+            if (clearErr) return callback(clearErr);
+            callback(null, {
+              message: "Payment confirmed, order created and cart cleared.",
+            });
+          });
       }
     );
 
-    // Clear the cart after payment confirmation
-    const clearCartQuery = `DELETE FROM ShoppingCart WHERE user_id = ?`;
-    db.run(clearCartQuery, [userId], (clearErr) => {
-      if (clearErr) return callback(clearErr);
-      callback(null, {
-        message: "Payment confirmed, order created and cart cleared.",
-      });
-    });
+    
   });
 };
 

@@ -6,7 +6,22 @@ const getOrderDetails = (orderId, callback) => {
     db.get(query, [orderId], (err, order) => {
         if (err) return callback(err);
         if (!order) return callback(new Error('Order not found.'));
-        callback(null, order);
+
+
+        const itemsquery = `SELECT * FROM OrderItems WHERE order_id = ?`;
+        db.all(itemsquery, [order.order_id], (err, orderItems) => {
+            if (err) return callback(err);
+            if (!orderItems  || orderItems.length === 0) return callback(new Error('Order items not found.'));
+
+
+
+            callback(null, {
+                ...order,
+                orderItems
+            });
+        })
+
+        
     });
 };
 
@@ -52,21 +67,6 @@ const updateOrderStatus = (orderId, status, callback) => {
     });
 };
 
-const handlePaymentConfirmation = (orderId, userEmail, callback) => {
-    const updatePaymentStatusQuery = `UPDATE Orders SET payment_status = 'Completed' WHERE order_id = ?`;
-
-    db.run(updatePaymentStatusQuery, [orderId], (err) => {
-        if (err) return callback(err);
-
-        // Retrieve order details for further actions
-        getOrderDetails(orderId, (err, orderDetails) => {
-            if (err) return callback(err);
-
-            // Example: Send email invoice (dummy implementation)
-            sendInvoiceEmail(userEmail, orderDetails, callback);
-        });
-    });
-};
 
 const cancelOrder = (orderId, userId, callback) => {
     const getOrderQuery = `SELECT user_id, order_status, product_id, quantity FROM Orders WHERE order_id = ?`;
@@ -127,4 +127,4 @@ const processReturn = (orderId, callback) => {
     });
 };
 
-module.exports = { getOrderDetails, getAllOrdersByUserId, updateOrderStatus, handlePaymentConfirmation, cancelOrder, processReturn };
+module.exports = { getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, processReturn };
