@@ -24,15 +24,7 @@ export default function CartItem({ item, onRemove, onAddQuantity }: { item: Cart
                         >
                             -
                         </button>
-                        <input
-                            type="text"
-                            id="counter-input-5"
-                            className="w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-gray-900"
-                            placeholder=""
-                            value={item.quantity}
-                            required
-                            readOnly
-                        />
+                        <div className="w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-gray-900">{item.quantity}</div>
                         <button
                             onClick={() => onAddQuantity(item.product_id)}
                             type="button"
