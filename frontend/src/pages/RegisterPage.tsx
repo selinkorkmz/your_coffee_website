@@ -36,8 +36,10 @@ function RegisterPage() {
                     localStorage.setItem("token", JSON.stringify(result.token))
                 }        
     
-                setUser(result.user);
-                navigate("/")
+                setUser(null); // Clear the AuthContext user
+                localStorage.removeItem("user"); // Remove user from localStorage
+                localStorage.removeItem("token"); // Remove token from localStorage
+                navigate("/login"); // Redirect to the login page
             })
         })
 
