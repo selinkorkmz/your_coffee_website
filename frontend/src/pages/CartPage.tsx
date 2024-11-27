@@ -5,7 +5,7 @@ import OrderSummary from "@/components/cart/OrderSummary";
 import { CartProduct } from "@/types/product";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/components/AuthContext";
-
+import { FiShoppingCart } from "react-icons/fi";
 
 function CartPage() {
     const [myCart, setMyCart] = useState<CartProduct[]>([]);
@@ -127,32 +127,43 @@ function CartPage() {
         <section className="bg-amber-50 py-8 antialiased md:py-16">
             <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
                 <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">Shopping Cart</h2>
-
-                <div className="mt-6 sm:mt-8 md:gap-6 lg:flex lg:items-start xl:gap-8">
-                    <div className="mx-auto w-full flex-none lg:max-w-2xl xl:max-w-4xl">
-                        <div className="space-y-6">
-                            {
-                                myCart.map(
-                                    (item: any) => (
-                                        <CartItem
-                                            item={item}
-                                            onRemove={(product_id) => {
-                                                handleRemove(product_id, item.quantity)
-                                            }}
-                                            onAddQuantity={handleAddQuantity}
-                                        />
-                                    )
-                                )
-                            }
-                        </div>
-                    </div>
-                    <OrderSummary
-                        cart={myCart}
-                    />
+    
+                {myCart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-[80vh]">
+                    <FiShoppingCart className="text-primary-600 w-20 h-20" />
+                    <p className="text-lg font-medium text-gray-600 mt-4">
+                        Your cart is currently empty...
+                    </p>
+                    <button
+                        onClick={() => (window.location.href = "/products")}
+                        className="mt-6 px-6 py-2 text-secondary-foreground bg-secondary hover:bg-secondary/90 font-medium text-sm rounded-lg focus:ring-4 focus:ring-secondary/50"
+                    >
+                        Browse Products
+                    </button>
                 </div>
+                ) : (
+                    <div className="mt-6 sm:mt-8 md:gap-6 lg:flex lg:items-start xl:gap-8">
+                        <div className="mx-auto w-full flex-none lg:max-w-2xl xl:max-w-4xl">
+                            <div className="space-y-6">
+                                {myCart.map((item: any) => (
+                                    <CartItem
+                                        key={item.product_id}
+                                        item={item}
+                                        onRemove={(product_id) => {
+                                            handleRemove(product_id, item.quantity);
+                                        }}
+                                        onAddQuantity={handleAddQuantity}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                        <OrderSummary cart={myCart} />
+                    </div>
+                )}
             </div>
         </section>
-    )
+    );
+    
 
     /*
     
@@ -177,6 +188,6 @@ function CartPage() {
             </div>
         );
         */
-}
 
+}
 export default CartPage;
