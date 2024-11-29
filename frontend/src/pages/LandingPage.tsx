@@ -22,7 +22,7 @@ const CATEGORIES = [
   {
     name: "Equipments",
     icon: <GiCoffeePot size={64} />,
-    to: "/products?category=Coffee Machine",
+    to: "/products?category=Coffee Machines",
   },
   {
     name: " Other Drinks",

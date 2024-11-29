@@ -22,11 +22,19 @@ export default function ProfilePage() {
         <span className="text-[15px] text-black ml-4 font-bold">My Orders</span>
       </div>
       </Link>
+
       <div
         className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white"
       >
         <span className="text-[15px] ml-4 text-black font-bold">My Reviews</span>
       </div>
+      
+      <div
+        className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white"
+      >
+        <span className="text-[15px] ml-4 text-black font-bold">Wishlist</span>
+      </div>
+      
     </div>
 
     </>
