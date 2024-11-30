@@ -23,10 +23,10 @@ const sendInvoiceEmail = (userId, pdfPath, callback) => {
 
     // Email options
     const mailOptions = {
-      from: '"Coffee Shop" <your-email@gmail.com>', // Sender address
+      from: '"Your Coffee" <your-email@gmail.com>', // Sender address
       to: user.email, // User's email
-      subject: "Your Invoice from Coffee Shop", // Subject line
-      text: `Hello, \n\nThank you for your order. Please find your invoice attached.\n\nBest regards,\nCoffee Shop`, // Plain text body
+      subject: "Your Invoice from Your Coffe", // Subject line
+      text: `Hello, \n\nThank you for your order. Please find your invoice attached.\n\nBest regards,\nYour Coffee`, // Plain text body
       attachments: [
         {
           filename: `invoice-${userId}.pdf`, // Set filename for the invoice PDF
