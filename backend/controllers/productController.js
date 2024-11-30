@@ -1,49 +1,68 @@
-const db = require('../models/database.js'); // Import the database connection
-
+const db = require("../models/database.js"); // Import the database connection
+const { getProductReviews } = require("./reviewController");
 
 // Function to get a product by its product_id
 const getProductById = (productId, callback) => {
-    const query = `SELECT * FROM Products WHERE product_id = ?`;
+  const query = `SELECT * FROM Products WHERE product_id = ?`;
 
-    db.get(query, [productId], (err, row) => {
-        if (err) {
-            console.error('Error fetching product:', err.message);
-            callback(err, null);  // Return error if any
-        } else {
-            callback(null, row);  // Return the product details
-        }
-    });
+  db.get(query, [productId], (err, row) => {
+    if (err) {
+      console.error("Error fetching product:", err.message);
+      callback(err, null); // Return error if any
+    } else {
+      callback(null, row); // Return the product details
+    }
+  });
 };
-
 
 const getAllProducts = (callback) => {
-    const query = `SELECT * FROM Products`;
+  const query = `SELECT * FROM Products`;
 
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            console.error('Error fetching all products:', err.message);
-            callback(err, null);
-        } else {
-            callback(null, rows); // Return all the products
-            console.log("...")
-        }
-    });
+  db.all(query, [], async (err, rows) => {
+    if (err) {
+      console.error("Error fetching all products:", err.message);
+      return callback(err, null);
+    }
+
+    try {
+      const productsWithRatings = await Promise.all(
+        rows.map(async (product) => {
+          try {
+            const rating = await getProductReviews(product.product_id);
+            const averageRating =
+              rating.reduce((sum, review) => sum + review.rating, 0) /
+              rating.length;
+            return { ...product, rating: averageRating || 0 };
+          } catch (ratingErr) {
+            console.error(
+              `Error fetching rating for product ${product.product_id}:`,
+              ratingErr
+            );
+            return { ...product, rating: null }; // Return product without rating if there's an error
+          }
+        })
+      );
+      console.log(productsWithRatings);
+      callback(null, productsWithRatings);
+    } catch (error) {
+      console.error("Error processing products with ratings:", error);
+      callback(error, null);
+    }
+  });
 };
-
 
 const getProductByField = (field, value, callback) => {
-    const query = `SELECT * FROM Products WHERE ${field} = ?`;
+  const query = `SELECT * FROM Products WHERE ${field} = ?`;
 
-    db.all(query, [value], (err, row) => {
-        if (err) {
-            console.error(`Error fetching product by ${field}:`, err.message);
-            callback(err, null);
-        } else {
-            callback(null, row); // Return the product that matches the field
-        }
-    });
+  db.all(query, [value], (err, row) => {
+    if (err) {
+      console.error(`Error fetching product by ${field}:`, err.message);
+      callback(err, null);
+    } else {
+      callback(null, row); // Return the product that matches the field
+    }
+  });
 };
-
 
 // Function to get a coffee by its product_id
 /*const getCoffeeByProductId = (productId, callback) => {
@@ -66,72 +85,74 @@ const getProductByField = (field, value, callback) => {
     });
 };*/
 
-
 const addProduct = (product, callback) => {
-    const { 
-        name, 
-        description, 
-        model, 
-        serial_number, 
-        price, 
-        discounted_price, 
-        quantity_in_stock, 
-        warranty_status, 
-        distributor_info, 
-        origin, 
-        roast_level, 
-        power_usage, 
-        category 
-    } = product;
+  const {
+    name,
+    description,
+    model,
+    serial_number,
+    price,
+    discounted_price,
+    quantity_in_stock,
+    warranty_status,
+    distributor_info,
+    origin,
+    roast_level,
+    power_usage,
+    category,
+  } = product;
 
-    // Define the SQL query for inserting a new product with the updated fields
-    const query = `
+  // Define the SQL query for inserting a new product with the updated fields
+  const query = `
         INSERT INTO Products (name, description, model, serial_number, price, discounted_price, quantity_in_stock, 
                               warranty_status, distributor_info, origin, roast_level, power_usage, category)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    // Execute the query with the provided product details
-    db.run(query, [
-        name, 
-        description, 
-        model, 
-        serial_number, 
-        price, 
-        discounted_price, 
-        quantity_in_stock, 
-        warranty_status, 
-        distributor_info, 
-        origin, 
-        roast_level, 
-        power_usage, 
-        category
-    ], function (err) {
-        if (err) {
-            console.error('Error adding product:', err.message);
-            callback(err, null); // Return error if the query fails
-        } else {
-            callback(null, { productId: this.lastID }); // Return the new product's ID
-        }
-    });
+  // Execute the query with the provided product details
+  db.run(
+    query,
+    [
+      name,
+      description,
+      model,
+      serial_number,
+      price,
+      discounted_price,
+      quantity_in_stock,
+      warranty_status,
+      distributor_info,
+      origin,
+      roast_level,
+      power_usage,
+      category,
+    ],
+    function (err) {
+      if (err) {
+        console.error("Error adding product:", err.message);
+        callback(err, null); // Return error if the query fails
+      } else {
+        callback(null, { productId: this.lastID }); // Return the new product's ID
+      }
+    }
+  );
 };
 
-
 const getAllCategories = (callback) => {
-    const query = `SELECT DISTINCT category FROM Products`;
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            console.error('Error fetching categories:', err.message);
-            callback(err, null);
-        } else {
-            const categories = rows.map(row => row.category); // Extract category names
-            callback(null, categories);
-        }
-    });
+  const query = `SELECT DISTINCT category FROM Products`;
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching categories:", err.message);
+      callback(err, null);
+    } else {
+      const categories = rows.map((row) => row.category); // Extract category names
+      callback(null, categories);
+    }
+  });
 };
 
 const searchProducts = (searchTerm, callback) => {
-    const query = `
+  const query = `
         SELECT * FROM Products
         WHERE name LIKE ?
         OR description LIKE ?
@@ -139,52 +160,61 @@ const searchProducts = (searchTerm, callback) => {
         OR distributor_info LIKE ?
     `;
 
-    // The search term needs to have ⁠ % ⁠ added for partial matching
-    const searchValue =`%${searchTerm}%`;
+  // The search term needs to have ⁠ % ⁠ added for partial matching
+  const searchValue = `%${searchTerm}%`;
 
-    db.all(query, [searchValue, searchValue, searchValue, searchValue], (err, rows) => {
-        if (err) {
-            console.error('Error searching products:', err.message);
-            callback(err, null);
-        } else {
-            callback(null, rows); // Return matching products
-        }
-    });
+  db.all(
+    query,
+    [searchValue, searchValue, searchValue, searchValue],
+    (err, rows) => {
+      if (err) {
+        console.error("Error searching products:", err.message);
+        callback(err, null);
+      } else {
+        callback(null, rows); // Return matching products
+      }
+    }
+  );
 };
 // Function to apply a discount to a product by its product_id
 const setDiscountOnProduct = (productId, discountRate, callback) => {
-    console.log('Applying discount:', productId, discountRate); // Debug log
-    if (discountRate <= 0 || discountRate >= 1) {
-        return callback(new Error('Invalid discount rate'), null);
+  console.log("Applying discount:", productId, discountRate); // Debug log
+  if (discountRate <= 0 || discountRate >= 1) {
+    return callback(new Error("Invalid discount rate"), null);
+  }
+
+  // First, retrieve the current product price
+  getProductById(productId, (err, product) => {
+    if (err) {
+      return callback(err, null);
+    }
+    if (!product) {
+      return callback(new Error("Product not found"), null);
     }
 
-    // First, retrieve the current product price
-    getProductById(productId, (err, product) => {
-        if (err) {
-            return callback(err, null);
-        }
-        if (!product) {
-            return callback(new Error('Product not found'), null);
-        }
+    // Calculate the new discounted price
+    const newPrice = product.price * (1 - discountRate);
 
-        // Calculate the new discounted price
-        const newPrice = product.price * (1 - discountRate);
-
-        // Update the product's price in the database
-        const query = `UPDATE Products SET discounted_price = ? WHERE product_id = ?`;
-        db.run(query, [newPrice, productId], (err) => {
-            if (err) {
-                console.error('Error updating product price:', err.message);
-                callback(err, null);
-            } else {
-                //notifyUsersWithDiscountedProduct(productId); // Notify users
-                callback(null, { productId, newPrice }); // Return updated product info
-            }
-        });
+    // Update the product's price in the database
+    const query = `UPDATE Products SET discounted_price = ? WHERE product_id = ?`;
+    db.run(query, [newPrice, productId], (err) => {
+      if (err) {
+        console.error("Error updating product price:", err.message);
+        callback(err, null);
+      } else {
+        //notifyUsersWithDiscountedProduct(productId); // Notify users
+        callback(null, { productId, newPrice }); // Return updated product info
+      }
     });
+  });
 };
 
-
-
-
-module.exports = { getProductByField,getAllProducts,getProductById, addProduct,getAllCategories,searchProducts,setDiscountOnProduct};
+module.exports = {
+  getProductByField,
+  getAllProducts,
+  getProductById,
+  addProduct,
+  getAllCategories,
+  searchProducts,
+  setDiscountOnProduct,
+};

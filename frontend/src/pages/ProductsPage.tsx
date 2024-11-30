@@ -37,6 +37,8 @@ const ProductPage = () => {
     queryFn: fetchAllProducts,
   });
 
+  console.log(products);
+
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchAllCategories,
@@ -72,6 +74,14 @@ const ProductPage = () => {
     } else if (sortBy === "price-desc") {
       filteredData.sort((a: Product, b: Product) => {
         return getPriceDifference(b, a);
+      });
+    } else if (sortBy === "rating-asc") {
+      filteredData.sort((a: Product, b: Product) => {
+        return a.rating - b.rating;
+      });
+    } else if (sortBy === "rating-desc") {
+      filteredData.sort((a: Product, b: Product) => {
+        return b.rating - a.rating;
       });
     }
 
@@ -122,6 +132,8 @@ const ProductPage = () => {
               <SelectItem value="default">Default</SelectItem>
               <SelectItem value="price-asc">Price: Low to High</SelectItem>
               <SelectItem value="price-desc">Price: High to Low</SelectItem>
+              <SelectItem value="rating-asc">Rating: Low to High</SelectItem>
+              <SelectItem value="rating-desc">Rating: High to Low</SelectItem>
             </SelectContent>
           </Select>
         </div>
