@@ -1,12 +1,7 @@
 import { CartProduct } from "@/types/product";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../AuthContext";
 
-export default function OrderSummary({ cart }: { cart: CartProduct[] }) {
-    const navigate = useNavigate();
-    const {user} = useAuth()
 
-      
+export default function CheckoutSummary({ cart }: { cart: CartProduct[] }) {      
     // Calculate the original price, savings, and total price
     const { origPrice, savings, totalPrice } = cart.reduce(
         (acc, item) => {
@@ -23,14 +18,6 @@ export default function OrderSummary({ cart }: { cart: CartProduct[] }) {
         { origPrice: 0, savings: 0, totalPrice: 0 }
     );
 
-    const handleCheckout = () => {
-        if (!user) {
-            alert('You must be logged in to proceed to checkout!');
-            navigate('/login'); // Redirect to login page
-        } else {
-            navigate('/checkout'); // Redirect to checkout page
-        }
-    };
 
     return (
         <div className="mx-auto mt-6 max-w-4xl flex-1 space-y-6 lg:mt-0 lg:w-full">
@@ -54,39 +41,6 @@ export default function OrderSummary({ cart }: { cart: CartProduct[] }) {
                         <dt className="text-base font-bold text-gray-900">Total</dt>
                         <dd className="text-base font-bold text-gray-900">${totalPrice.toFixed(2)}</dd>
                     </dl>
-                </div>
-
-                <button
-                    onClick={handleCheckout}
-                    className="flex w-full items-center justify-center bg-gray-100 rounded-lg bg-primary-700 px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-800 hover:text-blue-700 "
-                >
-                    Proceed to Checkout 
-                </button>
-
-                <div className="flex items-center justify-center gap-2">
-                    <span className="text-sm font-normal text-gray-500"> or </span>
-                    <a
-                        href="/products"
-                        title="Go to Products Page"
-                        className="inline-flex items-center gap-2 text-sm font-medium text-gray-800 underline hover:no-underline"
-                    >
-                        Continue Shopping
-                        <svg
-                            className="h-5 w-5"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M19 12H5m14 0-4 4m4-4-4-4"
-                            />
-                        </svg>
-                    </a>
                 </div>
             </div>
         </div>

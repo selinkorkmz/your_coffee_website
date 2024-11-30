@@ -1,14 +1,17 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 const Header = () => {
     const { user, setUser } = useAuth();
+    const navigate = useNavigate();
 
     const handleLogout = () => {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
         setUser(null); // Update global state
+        navigate("/")
+        
     };
 
     return (

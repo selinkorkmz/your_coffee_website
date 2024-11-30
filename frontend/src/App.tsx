@@ -1,7 +1,7 @@
 import "./App.css";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
-import CartPage from "./pages/CartPage";
+import CartPage from "./pages/CartPage"
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -13,6 +13,7 @@ import AdminLanding from "./pages/Admin/AdminLanding";
 import AuthGuard from "./components/AuthGuard";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import { AuthProvider } from "./components/AuthContext";
+import CheckoutPage from "./pages/CheckoutPage";
 
 const RootLayout = () => {
   return (
@@ -67,6 +68,11 @@ const router = createBrowserRouter([
         path: "/admin",
         element: <AuthGuard allowedRoles={["Sales Manager", "Product Manager"]}><AdminLanding /></AuthGuard>,
       },
+      {
+        path: "/checkout",
+        element: <CheckoutPage />,
+      },
+
     ],
   },
 ]);

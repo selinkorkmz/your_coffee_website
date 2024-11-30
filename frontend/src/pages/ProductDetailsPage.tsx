@@ -141,6 +141,40 @@ const ProductDetailsPage = () => {
     setTotalRating(averageRating ? Number(averageRating.toFixed(1)) : 0);
   }, [id, navigate, productData, reviewsData]);
 
+  const addToCart = () => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      // Add to cart using the server-side mutation
+      addProductToCartMutation({
+        productId: product!.product_id,
+        quantity: 1,
+      });
+    } else {
+      // Handle the cart in localStorage
+      const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
+
+      // Check if the product already exists in the cart
+      const existingProductIndex = localCart.findIndex(
+        (item) => item.productId === product!.product_id
+      );
+
+      if (existingProductIndex !== -1) {
+        localCart[existingProductIndex].quantity += 1;
+      } else {
+        localCart.push({
+          productId: product!.product_id,
+          quantity: 1,
+        });
+      }
+      localStorage.setItem("cart", JSON.stringify(localCart));
+
+
+      alert("added to cart");
+
+    }
+  } 
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -250,12 +284,7 @@ const ProductDetailsPage = () => {
 
           <Button
             className=""
-            onClick={() => {
-              addProductToCartMutation({
-                productId: product.product_id,
-                quantity,
-              });
-            }}
+            onClick={addToCart}
             disabled={product.quantity_in_stock === 0}
           >
             {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}

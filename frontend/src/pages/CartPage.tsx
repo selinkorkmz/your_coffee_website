@@ -105,7 +105,7 @@ function CartPage() {
 
         // Check if the product already exists in the cart
         const existingProductIndex = localCart.findIndex(
-            (item) => product_id === item.product_id
+            (item) => product_id === item.productId
         );
 
         if (existingProductIndex !== -1) {
