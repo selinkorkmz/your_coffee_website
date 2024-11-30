@@ -169,11 +169,9 @@ const ProductDetailsPage = () => {
       }
       localStorage.setItem("cart", JSON.stringify(localCart));
 
-
       alert("added to cart");
-
     }
-  } 
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -337,10 +335,10 @@ const ProductDetailsPage = () => {
           {/* Reviews List */}
           <div className="space-y-8">
             {reviews.map((review) => (
-              <div key={review.id} className="border-b pb-8">
+              <div key={review.review_id} className="border-b pb-8">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="font-semibold">{review.userName}</p>
+                    <p className="font-semibold">{review.user_name}</p>
                     <div className="flex items-center gap-2">
                       <RatingStars rating={review.rating} />
                     </div>

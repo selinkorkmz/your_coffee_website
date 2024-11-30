@@ -326,17 +326,6 @@ export async function submitReview(
       body: JSON.stringify({
         userId,
         comment,
-      }),
-    });
-
-    await fetch(`${API_URL}/reviews/${productId}/ratings`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId,
         rating,
       }),
     });
@@ -375,6 +364,53 @@ export async function getReviews(productId: number) {
   }
 }
 
+export async function getPendingReviews() {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/reviews/pending-reviews`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const reviews = await response.json();
+      return {
+        success: true,
+        reviews: reviews.reviews,
+      };
+    }
+  } catch (err) {
+    console.error("Error fetching pending reviews:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function moderateReview(reviewId: number, approved: number) {
+  const token = localStorage.getItem("token");
+
+  try {
+    await fetch(`${API_URL}/reviews/${reviewId}/moderate`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ approved }),
+    });
+  } catch (err) {
+    console.error("Error moderating review:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
 export async function initiatePayment() {
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
@@ -393,7 +429,7 @@ export async function initiatePayment() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        paymentMethod: "Card"
+        paymentMethod: "Card",
       }),
     });
 
@@ -404,7 +440,6 @@ export async function initiatePayment() {
         orderId: orderId.orderId,
       };
     }
-  
   } catch (err) {
     console.error("Error initiating payment:", err);
     return {
@@ -415,16 +450,16 @@ export async function initiatePayment() {
 
 export async function updateCartProduct(productId: number, quantity: number) {
   const response = await fetch(`/api/cart/${productId}`, {
-      method: "PUT",
-      headers: {
-          "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ quantity }),
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ quantity }),
   });
 
   if (!response.ok) {
-      throw new Error("Failed to update cart product");
+    throw new Error("Failed to update cart product");
   }
 
   return response.json();
-} 
+}
