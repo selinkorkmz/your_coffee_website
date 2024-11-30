@@ -4,50 +4,48 @@ const { generateInvoicePDF } = require("../utils/invoiceGenerator"); // Utility 
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 
-// Create a reusable transporter object using SMTP transport.
-const transporter = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
-  auth: {
-    user: "c61aa51a188d7f",
-    pass: "948b14d12fa27c",
-  },
-});
-
-// Utility to send email
 const sendInvoiceEmail = (userId, pdfPath, callback) => {
-  const getUserQuery = `SELECT email FROM Users WHERE user_id = ?`;
-  console.log("mailatmak üzereyim");
+  // Fetch user email from the database
+  const getUserEmailQuery = `SELECT email FROM Users WHERE user_id = ?`;
 
-  db.get(getUserQuery, [userId], (err, user) => {
-    if (err || !user) {
-      console.log("hatam var", err, user);
-      return callback(err || new Error("User not found."));
-    }
+  db.get(getUserEmailQuery, [userId], (err, user) => {
+    if (err) return callback(new Error("Error retrieving user email."));
+    if (!user || !user.email) return callback(new Error("User email not found."));
+
+    // Create a transporter object using SMTP transport
+    const transporter = nodemailer.createTransport({
+      service: "gmail", // or you can use other services like SendGrid, etc.
+      auth: {
+        user: "your.coffee2024@gmail.com", // Your email here
+        pass: "cblx jqda pyqh eddb", // Your email password here
+      },
+    });
+
+    // Email options
     const mailOptions = {
-      from: "yourcoffee@yourcoffee.com",
-      to: user.email,
-      subject: "Your Invoice",
-      text: "Thank you for your purchase. Please find your invoice attached.",
+      from: '"Coffee Shop" <your-email@gmail.com>', // Sender address
+      to: user.email, // User's email
+      subject: "Your Invoice from Coffee Shop", // Subject line
+      text: `Hello, \n\nThank you for your order. Please find your invoice attached.\n\nBest regards,\nCoffee Shop`, // Plain text body
       attachments: [
         {
-          filename: "invoice.pdf",
-          path: pdfPath,
+          filename: `invoice-${userId}.pdf`, // Set filename for the invoice PDF
+          path: pdfPath, // Path to the generated PDF invoice
         },
       ],
     };
 
-    console.log("maili atıyorum");
-
+    // Send the email
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.log("error var");
-        return callback(error);
+        return callback(new Error("Failed to send invoice email: " + error.message));
       }
+      console.log("Email sent: " + info.response);
       callback(null);
     });
   });
 };
+
 
 const pay = (userId, cardDetails, deliveryAddress, callback) => {
   const getCartQuery = `SELECT * FROM ShoppingCart WHERE user_id = ?`;
@@ -67,10 +65,10 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
     const orderDate = new Date().toISOString();
     const paymentStatus = "Completed";
     const paymentMethod = "Credit Card";
-    const createOrderQuery = `
-            INSERT INTO Orders (user_id, total_price, order_status, order_date, payment_status, delivery_address, payment_method, transaction_date)
-            VALUES (?, ?, 'Processing', ?, ?, ?, ?, ?)
-        `;
+    const createOrderQuery = 
+            `INSERT INTO Orders (user_id, total_price, order_status, order_date, payment_status, delivery_address, payment_method, transaction_date)
+            VALUES (?, ?, 'Processing', ?, ?, ?, ?, ?)`;
+
     let totalOrderPrice = 0;
 
     // Calculate the total price for the entire cart
@@ -96,13 +94,12 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
       ],
       function (err) {
         if (err) return callback(new Error("Payment processing failed."));
-        console.log(this);
         orderId = this.lastID;
 
-        const createOrderItemQuery = `
-            INSERT INTO OrderItems (product_id, order_id, quantity, price_at_purchase, total_price)
-            VALUES (?, ?, ?, ?,?)
-        `;
+        const createOrderItemQuery = 
+            `INSERT INTO OrderItems (product_id, order_id, quantity, price_at_purchase, total_price)
+            VALUES (?, ?, ?, ?, ?)`;
+
         let errorOccurred = false;
 
         cartItems.forEach((item) => {
@@ -119,7 +116,6 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
               totalPrice,
             ],
             function (err) {
-              console.log("orderitem oluşturuyorum");
               if (err) {
                 errorOccurred = true;
                 console.log("errrrr", err);
@@ -137,13 +133,12 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
             }
           );
 
-
-
           if (errorOccurred) {
             return callback(new Error("Payment processing failed."));
           }
         });
 
+        // Generate the invoice PDF
         generateInvoicePDF(
             userId,
             totalOrderPrice,
@@ -152,27 +147,28 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
               if (pdfErr) {
                 return callback(pdfErr);
               }
+
+              // Send invoice email
               sendInvoiceEmail(userId, pdfPath, (emailErr) => {
                 if (emailErr) return callback(emailErr);
                 console.log("Payment successful and invoice emailed.");
+
+                // Clear the cart after payment confirmation
+                const clearCartQuery = `DELETE FROM ShoppingCart WHERE user_id = ?`;
+                db.run(clearCartQuery, [userId], (clearErr) => {
+                  if (clearErr) return callback(clearErr);
+                  callback(null, {
+                    message: "Payment confirmed, order created and cart cleared.",
+                  });
+                });
               });
             }
           );
-      
-          // Clear the cart after payment confirmation
-          const clearCartQuery = `DELETE FROM ShoppingCart WHERE user_id = ?`;
-          db.run(clearCartQuery, [userId], (clearErr) => {
-            if (clearErr) return callback(clearErr);
-            callback(null, {
-              message: "Payment confirmed, order created and cart cleared.",
-            });
-          });
       }
     );
-
-    
   });
 };
+
 
 // Retrieve payment status for an order
 const getOrderPaymentStatus = (orderId, callback) => {
