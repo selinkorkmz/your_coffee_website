@@ -159,6 +159,7 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
                   if (clearErr) return callback(clearErr);
                   callback(null, {
                     message: "Payment confirmed, order created and cart cleared.",
+                    invoiceFileName: pdfPath.split("/").slice(-1)[0]
                   });
                 });
               });

@@ -1,5 +1,3 @@
-import { stringify } from "querystring";
-
 const API_URL = "http://localhost:3000/api";
 
 export async function loginRequest(email, password) {
@@ -462,4 +460,96 @@ export async function updateCartProduct(productId: number, quantity: number) {
   }
 
   return response.json();
+}
+
+export async function pay(cardDetails: { cvv: string, cardNumber: string, holderName: string, expire: string}, deliveryAddress: string) {
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    return {
+      error: "Please login to purchase your cart",
+    };
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/payments/pay`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cardDetails,
+        deliveryAddress
+      }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+
+      
+
+      return {
+        success: true,
+        message: result.message
+      };
+    }
+
+    if(response.status === 400) {
+      const result = await response.json();
+      return {
+        error: result.message
+      }
+    }
+
+    return {
+      error: "Unknown error"
+    };
+  } catch (err) {
+    console.error("Error initiating payment:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function getOrders() {
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+
+  if(!user){
+    return {
+      error: "Log in to see your orders."
+    }
+  }
+
+  const userId = JSON.parse(user).user_id;
+
+  try {
+    const response = await fetch(`${API_URL}/orders/user/${userId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return {
+        success: true,
+        orders: result.orders,
+      };
+    }
+
+    return {
+      error: "unknown error"
+    }
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
 }

@@ -1,13 +1,38 @@
-import { Link } from "react-router-dom";
+import UserOrders from "@/components/profile/UserOrders";
+import UserProfile from "@/components/profile/UserProfile";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 export default function ProfilePage() {
-    return <>
-        <div
-      className="sidebar top-0 bottom-0 lg:left-0 p-2 w-[300px] overflow-y-auto text-center bg-amber-50"
+  const [displayedScreen, setDisplayedScreen] = useState("profile")
+  const [params, setParams] = useSearchParams()
+
+  useEffect(() => {
+    if(params.has("display")){
+      setDisplayedScreen(params.get("display")!)
+    }
+  },[])
+
+  function displayContent() {
+    switch (displayedScreen) {
+      case "profile":
+        return (<UserProfile />)
+      case "orders":
+        return (<UserOrders />)
+      case "reviews":
+        return (<></>)
+      case "wishlist":
+        return (<></>)
+    }
+  }
+
+  return <div className="flex flex-row">
+    <div
+      className="flex-none lg:left-0 p-2 w-[200px] overflow-y-auto text-center bg-amber-50"
     >
-      <div className="text-xl">
+      <div className="text-xl" onClick={() => setDisplayedScreen("profile")}>
         <div className="p-2.5 mt-1 flex items-center">
-          <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>
+          {displayedScreen === "profile" && <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>}
           <h1 className="font-bold text-black text-[15px] ml-3">My Profile</h1>
           <i
             className="bi bi-x cursor-pointer ml-28 lg:hidden"
@@ -15,28 +40,35 @@ export default function ProfilePage() {
         </div>
         <div className="my-2 bg-gray-600 h-[1px]"></div>
       </div>
-      <Link to={"/admin/order-status"}>
-      <div
-        className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white"
-      >
-        <span className="text-[15px] text-black ml-4 font-bold">My Orders</span>
-      </div>
-      </Link>
+
+        <div
+          className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white"
+          onClick={() => setDisplayedScreen("orders")}
+        >
+          {displayedScreen === "orders" && <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>}
+          <span className="text-[15px] text-black ml-4 font-bold">My Orders</span>
+        </div>
 
       <div
         className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white"
-      >
+        onClick={() => setDisplayedScreen("reviews")}
+      > 
+       {displayedScreen === "reviews" && <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>}
         <span className="text-[15px] ml-4 text-black font-bold">My Reviews</span>
       </div>
-      
+
       <div
         className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white"
+        onClick={() => setDisplayedScreen("wishlist")}
       >
+        {displayedScreen === "wishlist" && <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>}
         <span className="text-[15px] ml-4 text-black font-bold">Wishlist</span>
       </div>
-      
-    </div>
 
-    </>
+    </div>
+    <div className="w-[100%]">{displayContent()}</div>
+    
+
+  </div>
 
 }

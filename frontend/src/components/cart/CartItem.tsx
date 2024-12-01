@@ -10,7 +10,19 @@ export default function CartItem({ item, onRemove, onAddQuantity }: { item: Cart
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:p-6">
             <div className="space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0">
                 <a href="#" className="w-20 shrink-0 md:order-1">
-                    <img className="h-20 w-20" src={item.image_url ?? "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg"} alt="imac image" />
+                    <img className="h-20 w-20" src={
+              item.image_url ||
+              (item.category === "Coffee"
+                ? "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg" // Replace with your coffee image URL
+                : item.category === "Coffee Machines"
+                  ? "https://assets.bonappetit.com/photos/61e755ce6b6fe523b0365397/16:9/w_1280,c_limit/20220112%20Best%20Coffee%20Maker%20LEDE.jpg" // Replace with your coffee machines image URL
+                  : item.category === "Drinks"
+                    ? "https://assets.bonappetit.com/photos/620fc9f986a3bcc597572d1c/3:2/w_6507,h_4338,c_limit/20220215%20Coffee%20Alternatives%20LEDE.jpg" // Replace with your drinks image URL
+                    : item.category === "Accessories"
+                      ? "https://img.freepik.com/free-photo/still-life-coffee-tools_23-2149371282.jpg" // Replace with your accessories image URL
+                      : "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg" // Default fallback image
+              )
+            } alt="imac image" />
                 </a>
 
                 <label htmlFor="counter-input" className="sr-only">Choose quantity:</label>

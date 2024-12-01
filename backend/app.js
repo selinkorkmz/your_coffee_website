@@ -15,6 +15,9 @@ const wishlistRoutes= require("./routes/wishlistRoutes.js")
 // Middleware to parse JSON request bodies
 app.use(express.json());
 app.use(cors());
+
+app.use('/invoice', express.static('invoices'))
+
 // Use the routes
 app.use("/api/products", productRoutes); // Prefix for product routes
 app.use("/api/auth", authRoutes); // Prefix for authentication routes
