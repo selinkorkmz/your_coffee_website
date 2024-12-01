@@ -488,7 +488,7 @@ export async function pay(cardDetails: { cvv: string, cardNumber: string, holder
     if (response.ok) {
       const result = await response.json();
 
-      
+      window.open(`http://localhost:3000/invoice/${result.invoiceFileName}`, '_blank')?.focus();
 
       return {
         success: true,
