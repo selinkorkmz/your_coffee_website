@@ -7,17 +7,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { addProductToCart } from "@/lib/requests";
+import { addProductToCart, getReviews } from "@/lib/requests";
 import { Product } from "@/types/product";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 
 type ProductCardProps = {
   product: Product;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+const RatingStars = ({ rating }: { rating: number }) => {
+  return (
+    <div className="flex items-center">
+      {[1, 2, 3, 4, 5].map((index) => {
+        const difference = rating - index;
 
+        return (
+          <span key={index}>
+            {difference >= 0 ? (
+              <FaStar className="h-4 w-4 text-yellow-400" />
+            ) : difference > -1 ? (
+              <FaStarHalfAlt className="h-4 w-4 text-yellow-400" />
+            ) : (
+              <FaRegStar className="h-4 w-4 text-gray-200" />
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
+};
+
+export function ProductCard({ product }: ProductCardProps) {
   const { mutate: addProductToCartMutation } = useMutation({
     mutationFn: ({
       productId,
@@ -31,20 +53,21 @@ export function ProductCard({ product }: ProductCardProps) {
     },
   });
 
+  const { data: reviewsData, isLoading } = useQuery({
+    queryKey: ["reviews", product.product_id],
+    queryFn: () => getReviews(product.product_id),
+  });
+
   const handleCartAdd = () => {
     const savedUser = localStorage.getItem("user");
 
     if (savedUser) {
-      // Add to cart using the server-side mutation
       addProductToCartMutation({
         productId: product.product_id,
         quantity: 1,
       });
     } else {
-      // Handle the cart in localStorage
       const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
-
-      // Check if the product already exists in the cart
       const existingProductIndex = localCart.findIndex(
         (item) => item.productId === product.product_id
       );
@@ -58,24 +81,30 @@ export function ProductCard({ product }: ProductCardProps) {
         });
       }
       localStorage.setItem("cart", JSON.stringify(localCart));
-
-
       alert("added to cart");
-
     }
   };
 
-
+  const averageRating =
+    reviewsData?.reviews.reduce(
+      (acc: number, review: { rating: number }) => acc + review.rating,
+      0
+    ) / reviewsData?.reviews.length || 0;
 
   return (
     <Card className="w-[350px] flex flex-col">
       <Link to={`/products/${product.product_id}`} className="w-full">
         <CardHeader className="h-[120px]">
           <div className="flex flex-col">
-            <CardTitle>{product.name}</CardTitle>
-            <CardDescription className="mt-2 line-clamp-2">
-              {product.description}
-            </CardDescription>
+            {/* Horizontal row for name and rating */}
+            <div className="flex items-center justify-between">
+              <CardTitle>{product.name}</CardTitle>
+              {/* Average Rating */}
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-gray-500">{averageRating.toFixed(1)}/5</span>
+              </div>
+            </div>
+            <CardDescription className="mt-2 line-clamp-2">{product.description}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="flex-grow">
@@ -83,15 +112,14 @@ export function ProductCard({ product }: ProductCardProps) {
             src={
               product.image_url ||
               (product.category === "Coffee"
-                ? "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg" // Replace with your coffee image URL
+                ? "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg"
                 : product.category === "Coffee Machines"
-                  ? "https://assets.bonappetit.com/photos/61e755ce6b6fe523b0365397/16:9/w_1280,c_limit/20220112%20Best%20Coffee%20Maker%20LEDE.jpg" // Replace with your coffee machines image URL
+                  ? "https://assets.bonappetit.com/photos/61e755ce6b6fe523b0365397/16:9/w_1280,c_limit/20220112%20Best%20Coffee%20Maker%20LEDE.jpg"
                   : product.category === "Drinks"
-                    ? "https://assets.bonappetit.com/photos/620fc9f986a3bcc597572d1c/3:2/w_6507,h_4338,c_limit/20220215%20Coffee%20Alternatives%20LEDE.jpg" // Replace with your drinks image URL
+                    ? "https://assets.bonappetit.com/photos/620fc9f986a3bcc597572d1c/3:2/w_6507,h_4338,c_limit/20220215%20Coffee%20Alternatives%20LEDE.jpg"
                     : product.category === "Accessories"
-                      ? "https://img.freepik.com/free-photo/still-life-coffee-tools_23-2149371282.jpg" // Replace with your accessories image URL
-                      : "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg" // Default fallback image
-              )
+                      ? "https://img.freepik.com/free-photo/still-life-coffee-tools_23-2149371282.jpg"
+                      : "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg")
             }
             alt={product.name}
             className="w-full h-48 object-cover"
@@ -137,8 +165,5 @@ export function ProductCard({ product }: ProductCardProps) {
         </Button>
       </CardFooter>
     </Card>
-
-
-
   );
 }

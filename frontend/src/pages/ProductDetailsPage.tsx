@@ -200,7 +200,7 @@ const ProductDetailsPage = () => {
         <div className="flex flex-col gap-4">
           <h1 className="text-3xl font-bold">
             {product.name}{" "}
-            <span className="text-sm text-gray-500">{totalRating || 0}/5</span>
+            <span className="text-sm text-gray-500">{totalRating.toFixed(1) || 0}/5</span>
           </h1>
           <p className="text-gray-600">{product.description}</p>
 
