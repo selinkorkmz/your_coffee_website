@@ -139,8 +139,11 @@ export async function addProductToCart(productId: number, quantity: number) {
       };
     } else {
       console.error("Failed to add product to cart", response.statusText);
+      let resp = await response.json()
+      
       return {
-        error: "Failed to add product to cart",
+        success: false,
+        message: resp.message,
       };
     }
   } catch (err) {

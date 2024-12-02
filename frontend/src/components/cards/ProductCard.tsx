@@ -47,9 +47,16 @@ export function ProductCard({ product }: ProductCardProps) {
     }: {
       productId: number;
       quantity: number;
-    }) => addProductToCart(productId, quantity),
-    onSuccess: () => {
-      alert("added to cart");
+    }) => {
+      const result = addProductToCart(productId, quantity);
+      return result; // Ensure the return value is passed to `onSuccess`
+    },
+    onSuccess: (data: any) => {
+      if (data.success) {
+        alert("added to cart");
+      } else {
+        alert(data.message)
+      }
     },
   });
 
