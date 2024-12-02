@@ -36,11 +36,10 @@ const CATEGORIES = [
   },
 ];
 const IMAGES = [
-  "https://picsum.photos/1920/528?0",
-  "https://picsum.photos/1920/528?1",
-  "https://picsum.photos/1920/528?2",
-  "https://picsum.photos/1920/528?3",
-  "https://picsum.photos/1920/528?4",
+  "https://www.nescafe.com/au/sites/default/files/2024-04/Untitled-5%20copy_6_0.jpg",
+  "https://www.italyweloveyou.com/wp-content/uploads/2022/06/De-Longhi-Coffe-Machine.webp",
+  "https://img.freepik.com/free-vector/coffee-paper-takeaway-cup-top-view_107791-31000.jpg",
+  "https://www.sciencealert.com/images/2023/09/GroundCoffeeOnBeans.jpg",
 ];
 
 const LandingPage = () => {
@@ -71,11 +70,11 @@ const LandingPage = () => {
     <div className="w-full h-full bg-amber-50">
       <Carousel className="w-full" setApi={setApi}>
         <CarouselContent className="-ml-1 px-4">
-          {Array.from({ length: 5 }).map((_, index) => (
+          {Array.from({ length: 4 }).map((_, index) => (
             <CarouselItem key={index} className="pl-1 basis-full">
               <div className="p-1 h-[450px]">
                 <Card className="w-full h-full">
-                  <CardContent className="flex items-center justify-center p-6 h-full">
+                  <CardContent className="flex items-center justify-center p-2 h-full">
                     <img
                       src={IMAGES[index]}
                       alt="product"
@@ -89,7 +88,7 @@ const LandingPage = () => {
         </CarouselContent>
       </Carousel>
       <div className="py-2 text-center">
-        {Array.from({ length: 5 }).map((_, index) => (
+        {Array.from({ length: 4 }).map((_, index) => (
           <Button
             key={index}
             variant="ghost"
