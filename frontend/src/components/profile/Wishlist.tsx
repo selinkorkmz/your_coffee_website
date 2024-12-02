@@ -1,11 +1,6 @@
-import { useEffect, useState } from "react";
 import { PiSmileySad } from "react-icons/pi";
-import { useNavigate } from "react-router-dom";
 
-function OrderStatusPage() {
-
-    
-    
+function Wishlist() {
 
     return (
         <div className="flex flex-col items-center justify-center h-[80vh]">
@@ -18,4 +13,4 @@ function OrderStatusPage() {
     );
 }
 
-export default OrderStatusPage;
+export default Wishlist;

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { PiSmileySad } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
 
-function OrderStatusPage() {
+function ProductManagementPage() {
 
     
     
@@ -18,4 +18,4 @@ function OrderStatusPage() {
     );
 }
 
-export default OrderStatusPage;
+export default ProductManagementPage;

@@ -1,5 +1,7 @@
 import UserOrders from "@/components/profile/UserOrders";
 import UserProfile from "@/components/profile/UserProfile";
+import UserReviews from "@/components/profile/UserReviews";
+import Wishlist from "@/components/profile/Wishlist";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -20,9 +22,9 @@ export default function ProfilePage() {
       case "orders":
         return (<UserOrders />)
       case "reviews":
-        return (<></>)
+        return (<UserReviews/>)
       case "wishlist":
-        return (<></>)
+        return (<Wishlist/>)
     }
   }
 

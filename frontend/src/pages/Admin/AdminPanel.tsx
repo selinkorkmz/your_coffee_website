@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import OrderStatusPage from "./OrderStatusPage";
 import AdminLanding from "./Reviews";
+import ProductManagementPage from "./ProductManagementPage";
 
 export default function AdminPanel() {
     const [displayedScreen, setDisplayedScreen] = useState("reviews")
@@ -20,7 +21,7 @@ export default function AdminPanel() {
             case "orderStatuses":
                 return (<OrderStatusPage />)
             case "productManagement":
-                return (<></>)
+                return (< ProductManagementPage />)
         }
     }
 
