@@ -97,5 +97,68 @@ describe('Wishlist Controller Tests', () => {
         });
     });
 
+    describe('removeFromWishlist', () => {
+        it('should remove a product from the wishlist', (done) => {
+            const userId = 1;
+            const productId = 101;
+
+            db.run.mockImplementationOnce((query, params, callback) => {
+                expect(query).toContain('DELETE FROM Wishlist WHERE user_id = ? AND product_id = ?');
+                expect(params).toEqual([userId, productId]);
+                callback(null);
+            });
+
+            removeFromWishlist(userId, productId, (err, message) => {
+                expect(err).toBeNull();
+                expect(message).toBe('Product removed from the wishlist.');
+                done();
+            });
+        });
+
+        it('should return an error if removing fails', (done) => {
+            const userId = 1;
+            const productId = 101;
+
+            db.run.mockImplementationOnce((query, params, callback) => {
+                callback(new Error('Deletion failed'));
+            });
+
+            removeFromWishlist(userId, productId, (err, message) => {
+                expect(err).toEqual(new Error('Deletion failed'));
+                expect(message).toBeUndefined();
+                done();
+            });
+        });
+    });
+
+    describe('getWishlist', () => {
+        it('should return an empty array if the wishlist is empty', (done) => {
+            const userId = 1;
+
+            db.all.mockImplementationOnce((query, params, callback) => {
+                callback(null, []); // Empty wishlist
+            });
+
+            getWishlist(userId, (err, wishlist) => {
+                expect(err).toBeNull();
+                expect(wishlist).toEqual([]);
+                done();
+            });
+        });
+
+        it('should return an error if fetching the wishlist fails', (done) => {
+            const userId = 1;
+
+            db.all.mockImplementationOnce((query, params, callback) => {
+                callback(new Error('Database error'));
+            });
+
+            getWishlist(userId, (err, wishlist) => {
+                expect(err).toEqual(new Error('Database error'));
+                expect(wishlist).toBeNull();
+                done();
+            });
+        });
+    });
   
 });
