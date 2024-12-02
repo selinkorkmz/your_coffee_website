@@ -1,11 +1,23 @@
 import { useAuth } from "@/components/AuthContext";
-import { loginRequest, registerRequest } from "@/lib/requests";
+import { addProductToCart, loginRequest, registerRequest } from "@/lib/requests";
+import { useMutation } from "@tanstack/react-query";
 import React, { useState } from "react"
 import { PiCoffeeBeanFill } from "react-icons/pi"
 import { Link, useNavigate } from "react-router-dom"
 
 function RegisterPage() {
-
+    const { mutate: addProductToCartMutation } = useMutation({
+        mutationFn: ({
+          productId,
+          quantity,
+        }: {
+          productId: number;
+          quantity: number;
+        }) => {
+          const result = addProductToCart(productId, quantity);
+          return result; // Ensure the return value is passed to ⁠ onSuccess ⁠
+        },
+      });
 
     const [errorMessage, setErrorMessage] = useState()
     const navigate = useNavigate();
@@ -34,10 +46,16 @@ function RegisterPage() {
                 if (!result.error) {
                     localStorage.setItem("user", JSON.stringify(result.user))
                     localStorage.setItem("token", result.token)
-                }        
-                setUser(result.user);
-                navigate("/")
-            })
+
+                    const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
+
+                    for (const cartItem of localCart) {
+                        addProductToCartMutation({productId: cartItem.productId, quantity: cartItem.quantity})
+                    }
+                        }        
+                        setUser(result.user);
+                        navigate("/")
+                    })
         })
 
     }

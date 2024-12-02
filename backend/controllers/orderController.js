@@ -108,10 +108,14 @@ const getAllOrdersByUserId = (userId, callback) => {
         OrderItems.price_at_purchase,
         OrderItems.total_price,
         Products.name AS product_name,
-        Products.description AS product_description
+        Products.description AS product_description,
+        Ratings.comment AS comment,
+        Ratings.rating AS rating,
+        Ratings.approved AS comment_approved
       FROM Orders
       LEFT JOIN OrderItems ON Orders.order_id = OrderItems.order_id
       LEFT JOIN Products ON OrderItems.product_id = Products.product_id
+      LEFT JOIN Ratings ON OrderItems.product_id = Ratings.product_id AND Orders.user_id = Ratings.user_id
       WHERE Orders.user_id = ?
     `;
   
@@ -145,7 +149,10 @@ const getAllOrdersByUserId = (userId, callback) => {
           price_at_purchase: row.price_at_purchase,
           total_price: row.total_price,
           product_name: row.product_name,
-          product_description: row.product_description
+          product_description: row.product_description,
+          comment: row.comment,
+          rating: row.rating,
+          comment_approved: row.comment_approved
         });
       });
   

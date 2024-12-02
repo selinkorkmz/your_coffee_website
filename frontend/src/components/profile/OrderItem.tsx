@@ -62,23 +62,23 @@ export default function OrderItem({ item }: { item: any }) {
           <h2 className="text-center bg-yellow-700 text-white">
             Products in Order
           </h2>
-          <div className="flex flex-col divide-y gap-4 divide-gray-200 mx-auto w-full">
+          <div className="flex flex-col divide-y divide-gray-200 mx-auto w-full">
             {item.order_items.map((orderItem) => (
-              <div className="flex flex-wrap md:flex-nowrap items-center justify-between px-4 py-2 min-h-[50px]">
+              <div className="flex flex-wrap md:flex-nowrap items-center justify-between px-4 py-6 min-h-[50px]">
                 {/* Product Name */}
-                <div className="text-center font-bold">
+                <div className="font-bold w-[20%]">
                   <div>
                     <span>{orderItem.product_name}</span>
                   </div>
                 </div>
 
                 {/* Quantity */}
-                <div className=" font-bold flex items-center">
+                <div className="text-center font-bold w-[20%]">
                   <span>{orderItem.quantity} x</span>
                 </div>
 
                 {/* Total Price */}
-                <div className="text-center">
+                <div className="text-center w-[20%]">
                   <div>
                     <span className="font-semibold">Total Price:</span>
                   </div>
@@ -87,7 +87,7 @@ export default function OrderItem({ item }: { item: any }) {
                   </div>
                 </div>
                 {item.order_status === "Delivered" && (
-                  <div className="flex justify-center mt-4">
+                  <div className="flex justify-center w-[40%]">
                     <ReviewCard product={orderItem} />
                   </div>
                 )}

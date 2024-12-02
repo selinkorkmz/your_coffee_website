@@ -184,6 +184,7 @@ const ProductDetailsPage = () => {
           <div className="mt-4">
             <h2 className="text-lg font-semibold mb-2">Product Details</h2>
             <ul className="list-disc list-inside space-y-2">
+            <li>Product Id: {product.product_id}</li>
               <li>Category: {product.category}</li>
               <li>Model: {product.model}</li>
               <li>Serial Number: {product.serial_number}</li>

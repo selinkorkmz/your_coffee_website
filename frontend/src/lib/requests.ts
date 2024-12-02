@@ -330,7 +330,7 @@ export async function submitRating(productId: number, rating: number) {
   }
 }
 
-export async function submitReview(productId: number, comment: string) {
+export async function submitReview(productId: number, comment: string, rating: number) {
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
 
@@ -352,6 +352,7 @@ export async function submitReview(productId: number, comment: string) {
       body: JSON.stringify({
         userId,
         comment,
+        rating
       }),
     });
   } catch (err) {

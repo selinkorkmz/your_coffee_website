@@ -1,11 +1,24 @@
 
 import { useAuth } from "@/components/AuthContext";
-import { loginRequest } from "@/lib/requests";
+import { addProductToCart, loginRequest } from "@/lib/requests";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { PiCoffeeBeanFill } from "react-icons/pi";
 import { Link, useNavigate } from "react-router-dom";
 
 function LoginPage() {
+    const { mutate: addProductToCartMutation } = useMutation({
+        mutationFn: ({
+          productId,
+          quantity,
+        }: {
+          productId: number;
+          quantity: number;
+        }) => {
+          const result = addProductToCart(productId, quantity);
+          return result; // Ensure the return value is passed to ⁠ onSuccess ⁠
+        },
+      });
     const [errorMessage, setErrorMessage] = useState()
     const { setUser } = useAuth();
     const navigate = useNavigate();
@@ -27,6 +40,12 @@ function LoginPage() {
 
             localStorage.setItem("user", JSON.stringify(result.user));
             localStorage.setItem("token", result.token);
+
+            const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
+
+            for (const cartItem of localCart) {
+                addProductToCartMutation({productId: cartItem.productId, quantity: cartItem.quantity})
+            }
 
             setUser(result.user); // Update the global auth state
             navigate("/");
