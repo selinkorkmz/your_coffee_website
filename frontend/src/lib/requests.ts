@@ -139,8 +139,8 @@ export async function addProductToCart(productId: number, quantity: number) {
       };
     } else {
       console.error("Failed to add product to cart", response.statusText);
-      let resp = await response.json()
-      
+      let resp = await response.json();
+
       return {
         success: false,
         message: resp.message,
@@ -301,11 +301,36 @@ export async function removeProductFromCart(productId, quantity) {
   }
 }
 
-export async function submitReview(
-  productId: number,
-  comment: string,
-  rating: number
-) {
+export async function submitRating(productId: number, rating: number) {
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    return {
+      error: "Please login to submit a rating",
+    };
+  }
+
+  const userId = JSON.parse(user).user_id;
+
+  try {
+    await fetch(`${API_URL}/reviews/${productId}/ratings`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, rating }),
+    });
+  } catch (err) {
+    console.error("Error submitting rating:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function submitReview(productId: number, comment: string) {
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
 
@@ -327,7 +352,6 @@ export async function submitReview(
       body: JSON.stringify({
         userId,
         comment,
-        rating,
       }),
     });
   } catch (err) {
@@ -465,7 +489,15 @@ export async function updateCartProduct(productId: number, quantity: number) {
   return response.json();
 }
 
-export async function pay(cardDetails: { cvv: string, cardNumber: string, holderName: string, expire: string}, deliveryAddress: string) {
+export async function pay(
+  cardDetails: {
+    cvv: string;
+    cardNumber: string;
+    holderName: string;
+    expire: string;
+  },
+  deliveryAddress: string
+) {
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
 
@@ -484,33 +516,94 @@ export async function pay(cardDetails: { cvv: string, cardNumber: string, holder
       },
       body: JSON.stringify({
         cardDetails,
-        deliveryAddress
+        deliveryAddress,
       }),
     });
 
     if (response.ok) {
       const result = await response.json();
 
-      window.open(`http://localhost:3000/invoice/${result.invoiceFileName}`, '_blank')?.focus();
+      window
+        .open(
+          `http://localhost:3000/invoice/${result.invoiceFileName}`,
+          "_blank"
+        )
+        ?.focus();
 
       return {
         success: true,
-        message: result.message
+        message: result.message,
       };
     }
 
-    if(response.status === 400) {
+    if (response.status === 400) {
       const result = await response.json();
       return {
-        error: result.message
-      }
+        error: result.message,
+      };
     }
 
     return {
-      error: "Unknown error"
+      error: "Unknown error",
     };
   } catch (err) {
     console.error("Error initiating payment:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function getAllOrders() {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/orders/allOrders`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return {
+        success: true,
+        orders: result.orders,
+      };
+    }
+
+    return {
+      error: "unknown error",
+    };
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function updateOrderStatus(orderId: number, status: string) {
+  const token = localStorage.getItem("token");
+
+  try {
+    await fetch(`${API_URL}/orders/status/${orderId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    return {
+      success: true,
+      message: "Order status updated successfully",
+    };
+  } catch (err) {
+    console.error("Error updating order status:", err);
     return {
       error: (err as Error).message ?? "Unexpected error",
     };
@@ -521,10 +614,10 @@ export async function getOrders() {
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
 
-  if(!user){
+  if (!user) {
     return {
-      error: "Log in to see your orders."
-    }
+      error: "Log in to see your orders.",
+    };
   }
 
   const userId = JSON.parse(user).user_id;
@@ -547,8 +640,8 @@ export async function getOrders() {
     }
 
     return {
-      error: "unknown error"
-    }
+      error: "unknown error",
+    };
   } catch (err) {
     console.error("Error fetching orders:", err);
     return {

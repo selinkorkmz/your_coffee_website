@@ -22,7 +22,7 @@ const submitRating = async (productId, { userId, rating }) => {
   return new Promise((resolve, reject) => {
     const query = `
             INSERT INTO Ratings (user_id, product_id, rating, approved)
-            VALUES (?, ?, ?, 0);
+            VALUES (?, ?, ?, 1);
         `;
     db.run(query, [userId, productId, rating], function (err) {
       if (err) {

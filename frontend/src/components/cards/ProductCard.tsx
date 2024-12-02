@@ -9,34 +9,12 @@ import {
 } from "@/components/ui/card";
 import { addProductToCart, getReviews } from "@/lib/requests";
 import { Product } from "@/types/product";
+import { Review } from "@/types/review";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 
 type ProductCardProps = {
   product: Product;
-};
-
-const RatingStars = ({ rating }: { rating: number }) => {
-  return (
-    <div className="flex items-center">
-      {[1, 2, 3, 4, 5].map((index) => {
-        const difference = rating - index;
-
-        return (
-          <span key={index}>
-            {difference >= 0 ? (
-              <FaStar className="h-4 w-4 text-yellow-400" />
-            ) : difference > -1 ? (
-              <FaStarHalfAlt className="h-4 w-4 text-yellow-400" />
-            ) : (
-              <FaRegStar className="h-4 w-4 text-gray-200" />
-            )}
-          </span>
-        );
-      })}
-    </div>
-  );
 };
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -47,20 +25,13 @@ export function ProductCard({ product }: ProductCardProps) {
     }: {
       productId: number;
       quantity: number;
-    }) => {
-      const result = addProductToCart(productId, quantity);
-      return result; // Ensure the return value is passed to `onSuccess`
-    },
-    onSuccess: (data: any) => {
-      if (data.success) {
-        alert("added to cart");
-      } else {
-        alert(data.message)
-      }
+    }) => addProductToCart(productId, quantity),
+    onSuccess: () => {
+      alert("added to cart");
     },
   });
 
-  const { data: reviewsData, isLoading } = useQuery({
+  const { data: reviewsData } = useQuery({
     queryKey: ["reviews", product.product_id],
     queryFn: () => getReviews(product.product_id),
   });
@@ -92,11 +63,16 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  const averageRating =
-    reviewsData?.reviews.reduce(
-      (acc: number, review: { rating: number }) => acc + review.rating,
-      0
-    ) / reviewsData?.reviews.length || 0;
+  const ratings =
+    reviewsData?.reviews.filter((review: Review) => review.rating !== null) ||
+    [];
+
+  const totalRating = ratings?.reduce(
+    (acc: number, review: Review) => acc + review.rating,
+    0
+  );
+
+  const averageRating = totalRating / ratings.length || 0;
 
   return (
     <Card className="w-[350px] flex flex-col">
@@ -108,10 +84,14 @@ export function ProductCard({ product }: ProductCardProps) {
               <CardTitle>{product.name}</CardTitle>
               {/* Average Rating */}
               <div className="flex items-center gap-1">
-                <span className="text-sm text-gray-500">{averageRating.toFixed(1)}/5</span>
+                <span className="text-sm text-gray-500">
+                  {averageRating.toFixed(1)}/5
+                </span>
               </div>
             </div>
-            <CardDescription className="mt-2 line-clamp-2">{product.description}</CardDescription>
+            <CardDescription className="mt-2 line-clamp-2">
+              {product.description}
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="flex-grow">
@@ -121,12 +101,12 @@ export function ProductCard({ product }: ProductCardProps) {
               (product.category === "Coffee"
                 ? "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg"
                 : product.category === "Coffee Machines"
-                  ? "https://assets.bonappetit.com/photos/61e755ce6b6fe523b0365397/16:9/w_1280,c_limit/20220112%20Best%20Coffee%20Maker%20LEDE.jpg"
-                  : product.category === "Drinks"
-                    ? "https://assets.bonappetit.com/photos/620fc9f986a3bcc597572d1c/3:2/w_6507,h_4338,c_limit/20220215%20Coffee%20Alternatives%20LEDE.jpg"
-                    : product.category === "Accessories"
-                      ? "https://img.freepik.com/free-photo/still-life-coffee-tools_23-2149371282.jpg"
-                      : "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg")
+                ? "https://assets.bonappetit.com/photos/61e755ce6b6fe523b0365397/16:9/w_1280,c_limit/20220112%20Best%20Coffee%20Maker%20LEDE.jpg"
+                : product.category === "Drinks"
+                ? "https://assets.bonappetit.com/photos/620fc9f986a3bcc597572d1c/3:2/w_6507,h_4338,c_limit/20220215%20Coffee%20Alternatives%20LEDE.jpg"
+                : product.category === "Accessories"
+                ? "https://img.freepik.com/free-photo/still-life-coffee-tools_23-2149371282.jpg"
+                : "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg")
             }
             alt={product.name}
             className="w-full h-48 object-cover"

@@ -4,13 +4,7 @@ import { Product } from "@/types/product"; // You'll need to create this type
 import { Review } from "@/types/review";
 import { Button } from "@/components/ui/button";
 import { FaRegStar, FaStarHalfAlt, FaStar } from "react-icons/fa";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  getProductById,
-  addProductToCart,
-  submitReview,
-  getReviews,
-} from "@/lib/requests";
+import { getProductById, addProductToCart, getReviews } from "@/lib/requests";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 const RatingStars = ({ rating }: { rating: number }) => {
@@ -35,58 +29,11 @@ const RatingStars = ({ rating }: { rating: number }) => {
   );
 };
 
-const RatingInput = ({
-  rating,
-  setRating,
-}: {
-  rating: number;
-  setRating: (rating: number) => void;
-}) => {
-  const [hoverRating, setHoverRating] = useState<number>(0);
-
-  return (
-    <div className="flex items-center gap-2">
-      {[1, 2, 3, 4, 5].map((index) => (
-        <div
-          key={index}
-          className="relative"
-          onMouseEnter={() => setHoverRating(index)}
-          onMouseLeave={() => setHoverRating(0)}
-        >
-          {/* Left half */}
-          <span
-            className="cursor-pointer absolute left-0 w-1/2 h-full z-10"
-            onClick={() => setRating(index - 0.5)}
-          />
-          {/* Right half */}
-          <span
-            className="cursor-pointer absolute right-0 w-1/2 h-full z-10"
-            onClick={() => setRating(index)}
-          />
-          {/* Star icon */}
-          {(hoverRating || rating) - index >= 0 ? (
-            <FaStar className="h-8 w-8 text-yellow-400" />
-          ) : (hoverRating || rating) - index > -1 ? (
-            <FaStarHalfAlt className="h-8 w-8 text-yellow-400" />
-          ) : (
-            <FaRegStar className="h-8 w-8 text-yellow-400" />
-          )}
-        </div>
-      ))}
-      <span className="ml-2 text-sm text-gray-500">
-        {rating ? `${rating} stars` : "Select rating"}
-      </span>
-    </div>
-  );
-};
-
 const ProductDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [reviewText, setReviewText] = useState("");
-  const [rating, setRating] = useState(0);
   const [totalRating, setTotalRating] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
@@ -107,48 +54,26 @@ const ProductDetailsPage = () => {
     }: {
       productId: number;
       quantity: number;
-    }) => {
-      const result = addProductToCart(productId, quantity);
-      return result; // Ensure the return value is passed to ⁠ onSuccess ⁠
-    },
-    onSuccess: (data: any) => {
-      if (data.success) {
-        alert("added to cart");
-      } else {
-        alert(data.message)
-      }
+    }) => addProductToCart(productId, quantity),
+    onSuccess: () => {
+      alert("added to cart");
     },
   });
-
-
-  const { mutate: submitReviewMutation, isPending: isSubmittingReview } =
-    useMutation({
-      mutationFn: ({
-        productId,
-        comment,
-        rating,
-      }: {
-        productId: number;
-        comment: string;
-        rating: number;
-      }) => submitReview(productId, comment, rating),
-      onSuccess: () => {
-        alert("Review submitted successfully");
-        setReviewText(""); // Clear the text area
-        setRating(0); // Reset the rating
-      },
-    });
-
 
   useEffect(() => {
     setReviews(reviewsData?.reviews ?? []);
     setProduct(productData?.product);
 
-    const totalRating = reviewsData?.reviews.reduce(
+    const ratings =
+      reviewsData?.reviews.filter((review: Review) => review.rating !== null) ||
+      [];
+
+    const totalRating = ratings?.reduce(
       (acc: number, review: Review) => acc + review.rating,
       0
     );
-    const averageRating = totalRating / reviewsData?.reviews.length;
+
+    const averageRating = totalRating / ratings.length;
     setTotalRating(averageRating ? Number(averageRating.toFixed(1)) : 0);
   }, [id, navigate, productData, reviewsData]);
 
@@ -211,7 +136,9 @@ const ProductDetailsPage = () => {
         <div className="flex flex-col gap-4">
           <h1 className="text-3xl font-bold">
             {product.name}{" "}
-            <span className="text-sm text-gray-500">{totalRating.toFixed(1) || 0}/5</span>
+            <span className="text-sm text-gray-500">
+              {totalRating.toFixed(1) || 0}/5
+            </span>
           </h1>
           <p className="text-gray-600">{product.description}</p>
 
@@ -322,35 +249,12 @@ const ProductDetailsPage = () => {
             </div>
           </div>
 
-          {/* Write a Review Button */}
-          <div className="flex flex-col gap-4">
-            <RatingInput rating={rating} setRating={setRating} />
-            <Textarea
-              rows={4}
-              placeholder="Write your review here..."
-              value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-            />
-            <Button
-              className="mb-8"
-              onClick={() => {
-                submitReviewMutation({
-                  productId: product.product_id,
-                  comment: reviewText,
-                  rating,
-                });
-              }}
-              disabled={isSubmittingReview}
-            >
-              {isSubmittingReview ? "Submitting..." : "Write a Review"}
-            </Button>
-          </div>
-
           {/* Reviews List */}
           <div className="space-y-8">
             {reviews
               .slice() // Create a shallow copy of the array
               .reverse() // Reverse the order
+              .filter((review) => review.comment !== null)
               .map((review) => (
                 <div key={review.review_id} className="border-b pb-8">
                   <div className="mb-4">
@@ -365,17 +269,11 @@ const ProductDetailsPage = () => {
                     </div>
                   </div>
 
-                  {/* Rating Stars */}
-                  <div className="flex items-center gap-2 mt-2 mb-4">
-                    <RatingStars rating={review.rating} />
-                  </div>
-
                   {/* Review Comment */}
                   <p className="text-gray-600">{review.comment}</p>
                 </div>
               ))}
           </div>
-
 
           {/* No Reviews Message */}
           {reviews.length === 0 && (
