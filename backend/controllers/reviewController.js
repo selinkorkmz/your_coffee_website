@@ -38,8 +38,9 @@ const submitRating = async (productId, { userId, rating }) => {
 const getProductReviews = async (productId) => {
   return new Promise((resolve, reject) => {
     const query = `
-            SELECT review_id, user_id, rating, comment
-            FROM Ratings
+            SELECT r.review_id, u.name, r.rating, r.comment, r.created_at
+            FROM Ratings r
+            JOIN Users u ON u.user_id = r.user_id
             WHERE product_id = ? AND approved = 1;
         `;
     db.all(query, [productId], (err, rows) => {

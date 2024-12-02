@@ -15,6 +15,7 @@ import AuthGuard from "./components/AuthGuard";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import { AuthProvider } from "./components/AuthContext";
 import CheckoutPage from "./pages/CheckoutPage";
+import AdminPanel from "./pages/Admin/AdminPanel";
 
 const RootLayout = () => {
   return (
@@ -65,22 +66,9 @@ const router = createBrowserRouter([
         path: "/admin",
         element: (
           <AuthGuard allowedRoles={["Sales Manager", "Product Manager"]}>
-            <div className="flex">
-              <AdminSidebar />
-              <Outlet />
-            </div>
+            <AdminPanel />,
           </AuthGuard>
         ),
-        children: [
-          {
-            path: "/admin/reviews",
-            element: <AdminReviews />,
-          },
-          {
-            path: "/admin/order-status",
-            element: <OrderStatusPage />,
-          },
-        ],
       },
       {
         path: "/checkout",

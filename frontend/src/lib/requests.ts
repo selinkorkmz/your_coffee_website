@@ -312,7 +312,7 @@ export async function submitReview(
     };
   }
 
-  const userId = JSON.parse(user).userId;
+  const userId = JSON.parse(user).user_id;
 
   try {
     await fetch(`${API_URL}/reviews/${productId}/comments`, {

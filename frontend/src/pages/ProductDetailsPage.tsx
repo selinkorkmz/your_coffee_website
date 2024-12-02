@@ -126,8 +126,11 @@ const ProductDetailsPage = () => {
       }) => submitReview(productId, comment, rating),
       onSuccess: () => {
         alert("Review submitted successfully");
+        setReviewText(""); // Clear the text area
+        setRating(0); // Reset the rating
       },
     });
+
 
   useEffect(() => {
     setReviews(reviewsData?.reviews ?? []);
@@ -337,20 +340,34 @@ const ProductDetailsPage = () => {
 
           {/* Reviews List */}
           <div className="space-y-8">
-            {reviews.map((review) => (
-              <div key={review.review_id} className="border-b pb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="font-semibold">{review.user_name}</p>
-                    <div className="flex items-center gap-2">
-                      <RatingStars rating={review.rating} />
+            {reviews
+              .slice() // Create a shallow copy of the array
+              .reverse() // Reverse the order
+              .map((review) => (
+                <div key={review.review_id} className="border-b pb-8">
+                  <div className="mb-4">
+                    {/* User Name and Created At */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <p className="font-semibold">{review.name}</p>
+                        <span className="text-sm text-gray-500">
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Rating Stars */}
+                  <div className="flex items-center gap-2 mt-2 mb-4">
+                    <RatingStars rating={review.rating} />
+                  </div>
+
+                  {/* Review Comment */}
+                  <p className="text-gray-600">{review.comment}</p>
                 </div>
-                <p className="text-gray-600">{review.comment}</p>
-              </div>
-            ))}
+              ))}
           </div>
+
 
           {/* No Reviews Message */}
           {reviews.length === 0 && (
