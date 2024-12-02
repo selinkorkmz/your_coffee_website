@@ -10,7 +10,9 @@ const {
     processReturn
 } = require('../controllers/orderController');
 
+const ordersController = require('../controllers/orderController');
 
+router.get('/allOrders', ordersController.getAllOrdersWithItems);
 
 // Route to retrieve order details
 router.get('/details/:orderId', authenticateJWT, (req, res) => {
