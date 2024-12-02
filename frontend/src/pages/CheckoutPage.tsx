@@ -38,6 +38,7 @@ export default function CheckoutPage(){
                 return;
             }
 
+            alert(result.message)
             navigate("/profile?display=orders")
         });
   }

@@ -26,13 +26,11 @@ export default function ProfilePage() {
     }
   }
 
-  return <div className="flex flex-row">
-    <div
-      className="flex-none lg:left-0 p-2 w-[200px] overflow-y-auto text-center bg-amber-50"
-    >
+  return <div className="flex flex-row divide-x">
+    <div className="flex-none lg:left-0 p-2 w-[200px] overflow-y-auto text-center ">
       <div className="text-xl" onClick={() => setDisplayedScreen("profile")}>
         <div className="p-2.5 mt-1 flex items-center">
-          {displayedScreen === "profile" && <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>}
+          {displayedScreen === "profile" && <i className="bi bi-app-indicator px-2 py-1 r0ounded-md bg-blue-600"></i>}
           <h1 className="font-bold text-black text-[15px] ml-3">My Profile</h1>
           <i
             className="bi bi-x cursor-pointer ml-28 lg:hidden"

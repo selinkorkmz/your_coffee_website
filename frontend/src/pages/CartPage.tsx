@@ -122,6 +122,38 @@ function CartPage() {
 
     }
 
+    const handleDecrementQuantity = (product_id: number) => {
+        if (user) {
+            // Decrement cart quantity using the server-side mutation
+            removeProductFromCart(product_id, 1).then((res) => {
+                if (res.error) {
+                    setErrorMessage(res.error);
+                    return;
+                }
+                fetchCart(); // Refresh the cart after update
+            });
+            return;
+        }
+    
+        // Handle the cart in localStorage
+        const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
+    
+        // Find the product in the cart
+        const existingProductIndex = localCart.findIndex((item) => product_id === item.productId);
+    
+        if (existingProductIndex !== -1) {
+            const product = localCart[existingProductIndex];
+            if (product.quantity > 1) {
+                product.quantity -= 1; // Decrement quantity
+            } else {
+                localCart.splice(existingProductIndex, 1); // Remove product if quantity is 1
+            }
+        }
+    
+        localStorage.setItem("cart", JSON.stringify(localCart));
+        fetchCart(); // Refresh the cart
+    };
+    
 
     return (
         <section className="bg-amber-50 py-8 antialiased md:py-16">
@@ -153,6 +185,7 @@ function CartPage() {
                                             handleRemove(product_id, item.quantity);
                                         }}
                                         onAddQuantity={handleAddQuantity}
+                                        onDecrementQuantity={handleDecrementQuantity}
                                     />
                                 ))}
                             </div>

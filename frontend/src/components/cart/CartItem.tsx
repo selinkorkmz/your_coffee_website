@@ -2,10 +2,8 @@ import { CartProduct } from "@/types/product";
 
 
 
-export default function CartItem({ item, onRemove, onAddQuantity }: { item: CartProduct, onRemove: (product_id: number) => void, onAddQuantity: (product_id: number) => void }) {
-    function handleDecrement() {
-
-    }
+export default function CartItem({ item, onRemove, onAddQuantity, onDecrementQuantity  }: { item: CartProduct, onRemove: (product_id: number) => void, onAddQuantity: (product_id: number) => void, onDecrementQuantity: (product_id: number) => void }) {
+  
     return (
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:p-6">
             <div className="space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0">
@@ -29,7 +27,7 @@ export default function CartItem({ item, onRemove, onAddQuantity }: { item: Cart
                 <div className="flex items-center justify-between md:order-3 md:justify-end">
                     <div className="flex items-center">
                         <button
-                            onClick={() => console.log("decremenr")}
+                            onClick={() => onDecrementQuantity(item.product_id)}
                             type="button"
                             id="decrement-button-5"
                             className="flex h-7 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 text-gray-900 hover:bg-gray-200"

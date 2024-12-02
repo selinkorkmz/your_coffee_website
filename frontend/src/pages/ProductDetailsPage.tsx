@@ -148,7 +148,7 @@ const ProductDetailsPage = () => {
       // Add to cart using the server-side mutation
       addProductToCartMutation({
         productId: product!.product_id,
-        quantity: 1,
+        quantity,
       });
     } else {
       // Handle the cart in localStorage
@@ -160,11 +160,11 @@ const ProductDetailsPage = () => {
       );
 
       if (existingProductIndex !== -1) {
-        localCart[existingProductIndex].quantity += 1;
+        localCart[existingProductIndex].quantity += quantity;
       } else {
         localCart.push({
           productId: product!.product_id,
-          quantity: 1,
+          quantity,
         });
       }
       localStorage.setItem("cart", JSON.stringify(localCart));
@@ -251,6 +251,9 @@ const ProductDetailsPage = () => {
               )}
               {product.warranty_status && (
                 <li>Warranty Status: {product.warranty_status}</li>
+              )}
+              {product.distributor_info && (
+                <li>Distributer: {product.distributor_info}</li>
               )}
             </ul>
           </div>
