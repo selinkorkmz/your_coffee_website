@@ -49,7 +49,6 @@ const removeFromCart = (userId, productId, quantity, callback) => {
 
 
 
-// Helper function to add or update cart entry
 const addOrUpdateCart = (userId, product, quantity, callback) => {
     // Check if the product is already in the user's shopping cart
     const cartCheckQuery = `SELECT quantity FROM ShoppingCart WHERE user_id = ? AND product_id = ?`;
@@ -60,13 +59,23 @@ const addOrUpdateCart = (userId, product, quantity, callback) => {
         if (cartItem) {
             // Product already in cart, update quantity
             const newQuantity = cartItem.quantity + quantity;
-            const updateCartQuery = `UPDATE ShoppingCart SET quantity = ? WHERE user_id = ? AND product_id = ?`;
 
+            // Ensure the new quantity does not exceed stock
+            if (newQuantity > product.quantity_in_stock) {
+                return callback(new Error('Total quantity in cart exceeds available stock.'));
+            }
+
+            const updateCartQuery = `UPDATE ShoppingCart SET quantity = ? WHERE user_id = ? AND product_id = ?`;
             db.run(updateCartQuery, [newQuantity, userId, product.product_id], (updateErr) => {
                 if (updateErr) return callback(updateErr);
                 callback(null, 'Product quantity updated in the cart.');
             });
         } else {
+            // Ensure the initial quantity does not exceed stock
+            if (quantity > product.quantity_in_stock) {
+                return callback(new Error('Quantity exceeds available stock.'));
+            }
+
             // Product not in cart, insert new entry with all details
             const insertCartQuery = `
                 INSERT INTO ShoppingCart 
@@ -87,6 +96,7 @@ const addOrUpdateCart = (userId, product, quantity, callback) => {
         }
     });
 };
+
 
 // Function to get the shopping cart of a specific user, including product details
 const getShoppingCart = (userId, callback) => {
