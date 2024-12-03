@@ -7,7 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { submitReview, submitRating } from "@/lib/requests";
 import { Product } from "@/types/product";
 
-const ReviewCard = ({ product }: { product: Product & {rating?: number, comment?: string, comment_approved?: number} }) => {
+const ReviewCard = ({ product }: { product: Product }) => {
   const [rating, setRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState<string>("");
 
@@ -16,11 +16,9 @@ const ReviewCard = ({ product }: { product: Product & {rating?: number, comment?
       mutationFn: ({
         productId,
         comment,
-        rating
       }: {
         productId: number;
         comment: string;
-        rating: number
       }) => submitReview(productId, comment, rating),
       onSuccess: () => {
         alert("Review submitted successfully");
@@ -28,30 +26,8 @@ const ReviewCard = ({ product }: { product: Product & {rating?: number, comment?
         setRating(0); // Reset the rating
       },
     });
-
-    if (product.rating || product.comment) {
-      return (<div className="flex flex-col gap-4 w-[50%]">
-        {product.rating && <div><span className="font-bold">Your Rating:</span> {product.rating}</div>}
-        {product.comment && <div className="flex flex-col"><span className="font-bold">Your Comment:</span> {product.comment}</div>}
-        <div
-  className={`flex flex-col font-bold ${
-    product.comment_approved === 1
-      ? "text-green-500"
-      : product.comment_approved === -1
-      ? "text-red-500"
-      : "text-yellow-500"
-  }`}
->
-  {product.comment_approved === 1
-    ? "Review Approved"
-    : product.comment_approved === -1
-    ? "Review Rejected"
-    : "Review Waiting Approval"}
-</div>
-      </div>)
-    }
-
-  return (<div className="flex flex-col gap-4">
+  return (
+    <div className="flex flex-col gap-4">
       <RatingInput
         rating={rating}
         setRating={setRating}
@@ -66,20 +42,9 @@ const ReviewCard = ({ product }: { product: Product & {rating?: number, comment?
       <Button
         className="mb-8"
         onClick={() => {
-          if(!rating) {
-            alert("You cannot add review without a rating")
-            return;
-          }
-
-          if(!reviewText) {
-            alert("You cannot add review without a comment")
-            return;
-          }
-
           submitReviewMutation({
             productId: product.product_id,
             comment: reviewText,
-            rating
           });
         }}
         disabled={isSubmittingReview}
