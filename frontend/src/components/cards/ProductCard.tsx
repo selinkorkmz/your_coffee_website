@@ -45,28 +45,47 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleCartAdd = () => {
     const savedUser = localStorage.getItem("user");
-
+  
     if (savedUser) {
+      // If the user is logged in, call the backend mutation
       addProductToCartMutation({
         productId: product.product_id,
         quantity: 1,
       });
     } else {
-      const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
+      // Handle local cart for guest users
+      const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
       const existingProductIndex = localCart.findIndex(
         (item) => item.productId === product.product_id
       );
-
+      const stock = product.quantity_in_stock;
+  
       if (existingProductIndex !== -1) {
-        localCart[existingProductIndex].quantity += 1;
+        // Product exists in cart
+        const quantityInCart = localCart[existingProductIndex].quantity;
+        if (stock < quantityInCart + 1) {
+          alert("Total quantity exceeds the available stock.");
+          return;
+        } else {
+          localCart[existingProductIndex].quantity += 1;
+          alert("Added to cart");
+        }
       } else {
-        localCart.push({
-          productId: product.product_id,
-          quantity: 1,
-        });
+        // Product does not exist in cart
+        if (stock < 1) {
+          alert("Total quantity exceeds the available stock.");
+          return;
+        } else {
+          localCart.push({
+            productId: product.product_id,
+            quantity: 1,
+          });
+          alert("Added to cart");
+        }
       }
+  
+      // Update the cart in localStorage
       localStorage.setItem("cart", JSON.stringify(localCart));
-      alert("added to cart");
     }
   };
 
