@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const db = require('../models/database.js');
 
 const getAllOrdersWithItems = (req, res) => {
@@ -280,4 +282,87 @@ const processReturn = (orderId, callback) => {
     });
   };
 
-module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, processReturn };
+
+  // Retrieve invoices, revenue, and profit in a date range
+  const getInvoicesInRange = (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ message: 'Start and end dates are required' });
+    }
+
+    const invoiceQuery = `
+        SELECT * 
+        FROM Invoices 
+        WHERE strftime('%Y-%m-%d', invoice_date) BETWEEN ? AND ?
+    `;
+
+    console.log('Query:', invoiceQuery);
+    console.log('Parameters:', [startDate, endDate]);
+
+    db.all(invoiceQuery, [startDate, endDate], (err, rows) => {
+        if (err) {
+            console.error('Error executing query:', err.message);
+            return res.status(500).json({ message: 'Failed to fetch invoices', error: err.message });
+        }
+
+        console.log('Query Result:', rows);
+
+        let revenue = 0, profit = 0;
+
+        rows.forEach(invoice => {
+            revenue += invoice.total_price;
+            profit += invoice.total_price * 0.25;
+        });
+
+        res.status(200).json({
+            message: 'Invoices retrieved successfully',
+            invoices: rows,
+            revenue,
+            profit,
+        });
+    });
+};
+
+
+
+// Export all invoices in a date range
+const exportInvoicesAsPDF = (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  if (!startDate || !endDate) {
+      return res.status(400).json({ message: 'Start and end dates are required' });
+  }
+
+  const invoicesFolder = path.join(__dirname, '../invoices');
+  const invoiceQuery = `
+      SELECT * 
+      FROM Invoices 
+      WHERE invoice_date BETWEEN ? AND ?
+  `;
+
+  db.all(invoiceQuery, [startDate, endDate], (err, rows) => {
+      if (err) {
+          return res.status(500).json({ message: 'Failed to fetch invoices', error: err.message });
+      }
+
+      const zip = require('adm-zip');
+      const archive = new zip();
+
+      rows.forEach(invoice => {
+          const invoicePath = path.join(invoicesFolder, `invoice-${invoice.invoice_id}.pdf`);
+          if (fs.existsSync(invoicePath)) {
+              archive.addLocalFile(invoicePath);
+          }
+      });
+
+      const zipPath = path.join(invoicesFolder, `invoices-${startDate}-to-${endDate}.zip`);
+      archive.writeZip(zipPath);
+
+      res.download(zipPath, `invoices-${startDate}-to-${endDate}.zip`, () => {
+          fs.unlinkSync(zipPath); // Remove the zip after sending
+      });
+  });
+};
+
+module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, processReturn, getInvoicesInRange, exportInvoicesAsPDF };

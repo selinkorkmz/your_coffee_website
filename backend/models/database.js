@@ -146,7 +146,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
 
         // Create Invoices table
         db.run(`CREATE TABLE IF NOT EXISTS Invoices (
-            invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            invoice_id INTEGER PRIMARY KEY AUTOINCREMENT, 
             order_id INTEGER,
             user_id INTEGER,
             total_price REAL NOT NULL,

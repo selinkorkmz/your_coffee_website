@@ -7,7 +7,9 @@ const {
     getAllOrdersByUserId,
     updateOrderStatus,
     cancelOrder,
-    processReturn
+    processReturn, 
+    getInvoicesInRange,
+    exportInvoicesAsPDF
 } = require('../controllers/orderController');
 
 const ordersController = require('../controllers/orderController');
@@ -73,5 +75,22 @@ router.post('/return', authenticateJWT, (req, res) => {
       return res.status(200).json({ message: result.message });
     });
   });
+
+  // Get invoices within date range
+// Get invoices within a date range (Sales Managers only)
+router.get(
+  '/invoices',
+  authenticateJWT,
+  authorizeRole(['Sales Manager']), // Restrict to Sales Manager
+  getInvoicesInRange
+);
+
+// Export invoices as PDF (Sales Managers only)
+router.get(
+  '/invoices/export',
+  authenticateJWT,
+  authorizeRole(['Sales Manager']), // Restrict to Sales Manager
+  exportInvoicesAsPDF
+);
 
 module.exports = router;
