@@ -100,13 +100,14 @@ const addProduct = (product, callback) => {
     roast_level,
     power_usage,
     category,
+    cost
   } = product;
 
   // Define the SQL query for inserting a new product with the updated fields
   const query = `
-        INSERT INTO Products (name, description, model, serial_number, price, discounted_price, quantity_in_stock, 
-                              warranty_status, distributor_info, origin, roast_level, power_usage, category)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO Products (name, description, model, serial_number,  price, discounted_price, quantity_in_stock, 
+                              warranty_status, distributor_info, origin, roast_level, power_usage, category, cost)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
   // Execute the query with the provided product details
@@ -126,6 +127,7 @@ const addProduct = (product, callback) => {
       roast_level,
       power_usage,
       category,
+      cost,
     ],
     function (err) {
       if (err) {

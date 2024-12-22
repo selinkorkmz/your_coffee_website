@@ -42,6 +42,14 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             }
         });
 
+        db.run(`ALTER TABLE Products ADD COLUMN cost REAL`, (err) => {
+            if (err) {
+                console.error('Failed to add cost column:', err.message);
+            } else {
+                console.log('Column "cost" added successfully.');
+            }
+        });
+
 
         db.run(`CREATE TABLE IF NOT EXISTS Users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
