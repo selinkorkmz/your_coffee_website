@@ -84,6 +84,73 @@ const getWishlist = (userId, callback) => {
         callback(null, rows);
     });
 };
+const nodemailer = require('nodemailer');
 
+/**
+ * Alert users when a product in their wishlist is discounted.
+ * @param {number} productId - The product ID that has been discounted.
+ * @param {number} newPrice - The new discounted price.
+ * @param {function} callback - Callback function for success or error.
+ */
+const alertUserWishlist = (productId, newPrice, callback) => {
+    // Step 1: Fetch user emails for users with the product in their wishlist
+    const getUserEmailsQuery = `
+        SELECT DISTINCT u.email, u.name
+        FROM Wishlist w
+        JOIN Users u ON w.user_id = u.user_id
+        WHERE w.product_id = ?
+    `;
 
-module.exports = { addToWishlist, removeFromWishlist, getWishlist, };
+    db.all(getUserEmailsQuery, [productId], (err, users) => {
+        if (err) {
+            console.error('Error retrieving user emails:', err.message);
+            return callback(new Error('Error retrieving user emails.'));
+        }
+
+        if (!users || users.length === 0) {
+            console.log('No users found with this product in their wishlist.');
+            return callback(null, 'No users to alert.');
+        }
+
+        // Step 2: Create a transporter for sending emails
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'your.coffee2024@gmail.com', // Replace with your email
+                pass: 'cblx jqda pyqh eddb', // Replace with your email app password
+            },
+        });
+
+        // Step 3: Prepare email options and send emails
+        const emailPromises = users.map((user) => {
+            const mailOptions = {
+                from: '"Your Coffee" <your.coffee2024@gmail.com>', // Sender address
+                to: user.email, // Recipient email
+                subject: 'Product Discount Alert', // Email subject
+                text: `Hello ${user.name},\n\nGood news! A product in your wishlist is now discounted. 
+                       The new price is $${newPrice}.\n\nVisit our website to grab the deal before it’s gone!\n\nBest regards,\nYour Coffee Team`, // Email body
+            };
+
+            return transporter.sendMail(mailOptions);
+        });
+
+        // Step 4: Handle email sending results
+        Promise.all(emailPromises)
+            .then(() => {
+                console.log('All emails sent successfully.');
+                callback(null, 'Users alerted successfully.');
+            })
+            .catch((error) => {
+                console.error('Error sending emails:', error.message);
+                callback(new Error('Failed to send some emails.'));
+            });
+    });
+};
+
+module.exports = {
+    addToWishlist,
+    removeFromWishlist,
+    getWishlist,
+    alertUserWishlist,
+};
+
