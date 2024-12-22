@@ -134,7 +134,7 @@ router.get('/search', (req, res) => {
 });
 
 // Route to set a discount on a product (Only for Sales Managers and Admins)
-router.put('/:id/discount', authenticateJWT, authorizeRole(['Sales Manager']), (req, res) => {
+router.put('/:id/discount', authenticateJWT, authorizeRole(['Sales Manager', "Customer"]), (req, res) => {
     const productId = req.params.id;
     const { discountRate } = req.body;
 
