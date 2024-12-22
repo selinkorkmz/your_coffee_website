@@ -209,7 +209,31 @@ const setDiscountOnProduct = (productId, discountRate, callback) => {
   });
 };
 
+// Function to update product quantity_in_stock
+const updateProductStock = (productId, quantity, callback) => {
+  // Check if quantity is valid (non-negative)
+  if (quantity < 0) {
+    return callback(new Error('Quantity cannot be negative.'));
+  }
+
+  // Update query
+  const query = `UPDATE Products SET quantity_in_stock = ? WHERE product_id = ?`;
+
+  db.run(query, [quantity, productId], function (err) {
+    if (err) {
+      console.error('Error updating product stock:', err.message);
+      callback(err);
+    } else if (this.changes === 0) {
+      // If no rows were updated, product ID does not exist
+      callback(new Error('Product not found.'));
+    } else {
+      callback(null, { message: 'Stock updated successfully', productId });
+    }
+  });
+};
+
 module.exports = {
+  updateProductStock,
   getProductByField,
   getAllProducts,
   getProductById,

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+    updateProductStock,
     getProductById,
     getAllProducts,
     getProductByField,
@@ -150,6 +151,30 @@ router.put('/:id/discount', authenticateJWT, authorizeRole(['Sales Manager']), (
         res.status(200).json({ message: 'Discount applied successfully', product: result });
     });
 });
+
+// Route to update product stock (Only for Product Managers and Admins)
+router.put( '/:id/updatestock',
+    authenticateJWT,
+    authorizeRole(['Product Manager', 'Admin']), // Only authorized roles can update stock
+    (req, res) => {
+      const productId = req.params.id;
+      const { quantity } = req.body;
+  
+      // Check if quantity is provided and is a number
+      if (quantity === undefined || isNaN(quantity)) {
+        return res.status(400).json({ message: 'Valid quantity is required.' });
+      }
+  
+      updateProductStock(productId, quantity, (err, result) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: 'Failed to update product stock', error: err.message });
+        }
+        res.status(200).json(result);
+      });
+    }
+  );
 
 
 module.exports = router;
