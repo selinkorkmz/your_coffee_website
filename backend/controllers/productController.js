@@ -1,5 +1,6 @@
 const db = require("../models/database.js"); // Import the database connection
 const { getProductReviews } = require("./reviewController");
+const { alertUserWishlist } = require('./wishlistController'); // Import the function
 
 // Function to get a product by its product_id
 const getProductById = (productId, callback) => {
@@ -180,36 +181,44 @@ const searchProducts = (searchTerm, callback) => {
 };
 // Function to apply a discount to a product by its product_id
 const setDiscountOnProduct = (productId, discountRate, callback) => {
-  console.log("Applying discount:", productId, discountRate); // Debug log
-  if (discountRate <= 0 || discountRate >= 1) {
-    return callback(new Error("Invalid discount rate"), null);
-  }
+    console.log('Applying discount:', productId, discountRate);
 
-  // First, retrieve the current product price
-  getProductById(productId, (err, product) => {
-    if (err) {
-      return callback(err, null);
-    }
-    if (!product) {
-      return callback(new Error("Product not found"), null);
+    if (discountRate <= 0 || discountRate >= 1) {
+        return callback(new Error('Invalid discount rate'), null);
     }
 
-    // Calculate the new discounted price
-    const newPrice = product.price * (1 - discountRate);
+    // Retrieve the current product price
+    getProductById(productId, (err, product) => {
+        if (err) return callback(err, null);
+        if (!product) return callback(new Error('Product not found'), null);
 
-    // Update the product's price in the database
-    const query = `UPDATE Products SET discounted_price = ? WHERE product_id = ?`;
-    db.run(query, [newPrice, productId], (err) => {
-      if (err) {
-        console.error("Error updating product price:", err.message);
-        callback(err, null);
-      } else {
-        //notifyUsersWithDiscountedProduct(productId); // Notify users
-        callback(null, { productId, newPrice }); // Return updated product info
-      }
+        // Calculate the new discounted price
+        const newPrice = product.price * (1 - discountRate);
+
+        // Update the product's discounted price in the database
+        const query = `UPDATE Products SET discounted_price = ? WHERE product_id = ?`;
+        db.run(query, [newPrice, productId], (updateErr) => {
+            if (updateErr) {
+                console.error('Error updating product price:', updateErr.message);
+                return callback(updateErr, null);
+            }
+
+            console.log('Price updated successfully. Notifying wishlist users...');
+
+            // Call alertUserWishlist to notify users
+            alertUserWishlist(productId, newPrice, (alertErr, message) => {
+                if (alertErr) {
+                    console.error('Error alerting users:', alertErr.message);
+                    return callback(alertErr, null);
+                }
+
+                console.log(message); // Log the result of alerting users
+                callback(null, { productId, newPrice, alertMessage: message });
+            });
+        });
     });
-  });
 };
+
 
 // Function to update product quantity_in_stock
 const updateProductStock = (productId, quantity, callback) => {
