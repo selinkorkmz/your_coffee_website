@@ -26,6 +26,9 @@ const Header = () => {
                 <Link to="/cart" className="text-black hover:text-bold">
                     Cart
                 </Link>
+                <Link to="/wishlist" className="text-black hover:text-bold">
+                    Wishlist
+                </Link>
                 {user ? (
                     <div className="flex items-center gap-4">
                         <Link to="/profile" className="text-black hover:text-bold">

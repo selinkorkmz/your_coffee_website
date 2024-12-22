@@ -650,3 +650,55 @@ export async function getOrders() {
     };
   }
 }
+
+export async function updateDiscountRate(productId: number, rate: number) {
+  const token = localStorage.getItem("token");
+
+
+  try {
+    await fetch(`${API_URL}/products/${productId}/discount`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ discountRate: rate }),
+    });
+
+    return {
+      success: true,
+      message: "Discaount rate updated successfully",
+    };
+  } catch (err) {
+    console.error("Error updating Discaount rate:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function updateStock(productId: number, stock: number) {
+  const token = localStorage.getItem("token");
+
+
+  try {
+    await fetch(`${API_URL}/products/${productId}/updatestock`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quantity: stock }),
+    });
+
+    return {
+      success: true,
+      message: "Stock updated successfully",
+    };
+  } catch (err) {
+    console.error("Error updating stock:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}

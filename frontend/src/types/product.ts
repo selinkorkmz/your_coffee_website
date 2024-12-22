@@ -15,6 +15,7 @@ export type Product = {
   warranty_status: string;
   image_url: string | null;
   rating: number;
+  cost: number | null;
 };
 
 export type CartProduct = Product & { quantity: number }

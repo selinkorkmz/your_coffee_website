@@ -16,6 +16,7 @@ import ProfilePage from "./pages/Profile/ProfilePage";
 import { AuthProvider } from "./components/AuthContext";
 import CheckoutPage from "./pages/CheckoutPage";
 import AdminPanel from "./pages/Admin/AdminPanel";
+import Wishlist from "./components/profile/Wishlist";
 
 const RootLayout = () => {
   return (
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
       {
         path: "/checkout",
         element: <CheckoutPage />,
+      },
+      {
+        path: "/wishlist",
+        element: <Wishlist />,
       },
     ],
   },

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import OrderStatusPage from "./OrderStatusPage";
 import AdminLanding from "./Reviews";
 import ProductManagementPage from "./ProductManagementPage";
+import ProfitLossRevenueSalesChart from "@/components/ProfitLossRevenueSalesChart";
 
 export default function AdminPanel() {
     const [displayedScreen, setDisplayedScreen] = useState("reviews")
@@ -22,6 +23,8 @@ export default function AdminPanel() {
                 return (<OrderStatusPage />)
             case "productManagement":
                 return (< ProductManagementPage />)
+            case "charts":
+                return (< ProfitLossRevenueSalesChart />)
         }
     }
 
@@ -60,6 +63,14 @@ export default function AdminPanel() {
             >
                 {displayedScreen === "orderStatuses" && <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>}
                 <span className="text-[15px] ml-4 text-black font-bold">Order Statuses</span>
+            </div>
+
+            <div
+                className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-blue-600 text-white"
+                onClick={() => setDisplayedScreen("charts")}
+            >
+                {displayedScreen === "charts" && <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>}
+                <span className="text-[15px] ml-4 text-black font-bold">Charts</span>
             </div>
 
         </div>

@@ -29,7 +29,7 @@ function OrderStatusPage() {
   return (
     <div className="flex flex-col gap-4 p-4">
       <h1 className="text-2xl font-bold">Orders</h1>
-      {data?.orders.map((order: any) => (
+      {data?.orders.slice().reverse().map((order: any) => (
         <div
           key={order.order_id}
           className="flex flex-col gap-2 border-2 border-gray-200 p-4 rounded-md"
