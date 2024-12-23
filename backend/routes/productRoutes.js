@@ -74,7 +74,7 @@ router.get('/field/:field/:value', (req, res) => {
 });*/
 
 // Route to add a product (Only for Product Managers and Admins)
-router.post('/', (req, res) => {
+router.post('/add', (req, res) => {
     addProduct(req.body, (err, productId) => {
         if (err) {
             return res.status(500).json({ message: 'Failed to add product', error: err.message });

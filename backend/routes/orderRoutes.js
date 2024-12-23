@@ -77,11 +77,6 @@ router.post('/return', authenticateJWT, (req, res) => {
 
   // Get invoices within date range
 // Get invoices within a date range (Sales Managers only)
-router.get(
-  '/invoices',
-  authenticateJWT,
-  authorizeRole(['Sales Manager']), // Restrict to Sales Manager
-  getInvoicesInRange
-);
+router.get('/invoices', getInvoicesInRange);
 
 module.exports = router;

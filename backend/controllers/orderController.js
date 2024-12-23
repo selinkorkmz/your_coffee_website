@@ -291,37 +291,46 @@ const processReturn = (orderId, callback) => {
         return res.status(400).json({ message: 'Start and end dates are required' });
     }
 
-    const invoiceQuery = `
-        SELECT * 
-        FROM Invoices 
-        WHERE strftime('%Y-%m-%d', invoice_date) BETWEEN ? AND ?
-    `;
+    // Query to calculate revenue and fetch order details
+    const revenueQuery = `
+    SELECT 
+        o.order_id, 
+        o.total_price AS order_total_price, 
+        oi.product_id, 
+        oi.quantity, 
+        p.cost
+    FROM Orders o
+    JOIN OrderItems oi ON o.order_id = oi.order_id
+    JOIN Products p ON oi.product_id = p.product_id
+    WHERE o.order_date BETWEEN ? AND ?
+`;
 
-    console.log('Query:', invoiceQuery);
-    console.log('Parameters:', [startDate, endDate]);
+db.all(revenueQuery, [`${startDate}T00:00:00.000Z`, `${endDate}T23:59:59.999Z`], (err, rows) => {
+  if (err) {
+      console.error('Error executing query:', err.message);
+      return res.status(500).json({ message: 'Failed to fetch data', error: err.message });
+  }
 
-    db.all(invoiceQuery, [startDate, endDate], (err, rows) => {
-        if (err) {
-            console.error('Error executing query:', err.message);
-            return res.status(500).json({ message: 'Failed to fetch invoices', error: err.message });
-        }
+  console.log('Fetched Rows:', rows);
 
-        console.log('Query Result:', rows);
+  let totalRevenue = 0;
+  let totalCost = 0;
 
-        let revenue = 0, profit = 0;
+  rows.forEach(row => {
+      totalRevenue += row.order_total_price;
+      totalCost += row.cost * row.quantity;
+  });
 
-        rows.forEach(invoice => {
-            revenue += invoice.total_price;
-            profit += invoice.total_price * 0.25;
-        });
+  const profit = totalRevenue - totalCost;
 
-        res.status(200).json({
-            message: 'Invoices retrieved successfully',
-            invoices: rows,
-            revenue,
-            profit,
-        });
-    });
-};
+  res.status(200).json({
+      message: 'Revenue and profit calculated successfully',
+      revenue: totalRevenue,
+      profit,
+  });
+});
+
+
+}
 
 module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, processReturn, getInvoicesInRange };
