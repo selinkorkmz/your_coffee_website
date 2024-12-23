@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { updateUser, registerUser, signInUser, getAllUsers, getUserByEmail,getUserProfile } = require('../controllers/authController.js');
+const { updateUserAddressandTaxid, updateUser, registerUser, signInUser, getAllUsers, getUserByEmail,getUserProfile } = require('../controllers/authController.js');
 const authenticateJWT = require('../middlewares/authMiddleware.js'); // Middleware to verify JWT
 
 // Route to register a user
 router.post('/register', (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, tax_id, home_address } = req.body;
 
-    registerUser(name, email, password, role, (err, result) => {
+    registerUser(name, email, password, role, tax_id, home_address, (err, result) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }
@@ -63,6 +63,7 @@ router.put('/users/:id', authenticateJWT, (req, res) => {
         res.status(200).json({ message });
     });
 });
+
 // Route to get detailed user information by user_id
 router.get('/users/profile/:id', (req, res) => {
     const userId = req.params.id;
@@ -75,6 +76,25 @@ router.get('/users/profile/:id', (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
         res.status(200).json({ message: 'User profile retrieved successfully', user });
+    });
+});
+
+// Route to update home address and tax ID
+router.put('/:id/updateaddress', authenticateJWT, (req, res) => {
+    const userId = req.params.id;
+    const { home_address, tax_id } = req.body;
+
+    // Input validation
+    if (!home_address || !tax_id) {
+        return res.status(400).json({ message: "Home address and tax ID are required." });
+    }
+
+    // Call the controller function
+    updateUserAddressandTaxid(userId, home_address, tax_id, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: err.message });
+        }
+        res.status(200).json(result);
     });
 });
 

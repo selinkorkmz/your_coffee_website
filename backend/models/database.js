@@ -63,7 +63,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             if (err) {
                 console.error('Users table creation error:', err.message);
             } else {
-                const insert = 'INSERT INTO Users (name, email, password, role, shopping_cart) VALUES (?,?,?,?,?)';
+                const insert = 'INSERT INTO Users (name, email, password, role, shopping_cart, tax_id, home_address) VALUES (?,?,?,?,?,?,?)';
                 // Note: Password should be hashed before being inserted using bcrypt (handled in authController).
 
                 // Example insert statement to create an Admin user:
@@ -96,7 +96,21 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             }
         });
     
-        
+        db.run(`ALTER TABLE Users ADD COLUMN tax_id TEXT`, (err) => {
+            if (err) {
+                console.error('Failed to add cost column:', err.message);
+            } else {
+                console.log('Column "TAX" added successfully.');
+            }
+        });
+        db.run(`ALTER TABLE Users ADD COLUMN home_address TEXT`, (err) => {
+            if (err) {
+                console.error('Failed to add cost column:', err.message);
+            } else {
+                console.log('Column "homeaddress" added successfully.');
+            }
+        });
+
         db.run(`CREATE TABLE IF NOT EXISTS Orders (
             order_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,

@@ -3,12 +3,13 @@
 const db = require('../models/database.js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { use } = require('../routes/orderRoutes.js');
 
 // JWT Secret Key (should be stored securely in environment variables)
 const JWT_SECRET = 'your-secret-key';
 
 // Function to register a new user
-const registerUser = async (name, email, password, role, callback) => {
+const registerUser = async (name, email, password, role,tax_id,home_address, callback) => {
     // Check if the email is already in use
     const checkEmailQuery = `SELECT * FROM Users WHERE email = ?`;
 
@@ -26,11 +27,11 @@ const registerUser = async (name, email, password, role, callback) => {
 
         // Insert the new user
         const insertUserQuery = `
-            INSERT INTO Users (name, email, password, role, shopping_cart)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO Users (name, email, password, role, shopping_cart, tax_id, home_address)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
 
-        db.run(insertUserQuery, [name, email, hashedPassword, role, shoppingCart], function (err) {
+        db.run(insertUserQuery, [name, email, hashedPassword, role, shoppingCart, tax_id, home_address], function (err) {
             if (err) {
                 return callback(err);
             }
@@ -68,7 +69,7 @@ const signInUser = (email, password, callback) => {
 
 // Get All Users Function
 const getAllUsers = (callback) => {
-    const query = `SELECT user_id, name, email, role, shopping_cart FROM Users`; // Exclude sensitive data like passwords
+    const query = `SELECT user_id, name, email, role, shopping_cart, tax_id, home_address FROM Users`; // Exclude sensitive data like passwords
 
     db.all(query, [], (err, rows) => {
         if (err) {
@@ -126,9 +127,33 @@ const updateUser = async (userId, name, email, password, callback) => {
     });
 };
 
+// Update Home Address and Tax ID
+const updateUserAddressandTaxid = (user_id, home_address, tax_id, callback) => {
+    // SQL query to update the fields
+    const query = `
+        UPDATE Users
+        SET home_address = ?, tax_id = ?
+        WHERE user_id = ?
+    `;
+
+    db.run(query, [home_address, tax_id, user_id], function (err) {
+        if (err) {
+            console.error("Error updating user details:", err.message);
+            return callback(err); // Return error if query fails
+        }
+
+        // Check if any row was affected
+        if (this.changes === 0) {
+            return callback(new Error("User not found or no changes made.")); // No matching user or no update
+        }
+
+        callback(null, { message: "User details updated successfully." }); // Success
+    });
+};
+
 // Function to get detailed user information by user_id
 const getUserProfile = (userId, callback) => {
-    const query =` SELECT user_id, name, email, role, shopping_cart FROM Users WHERE user_id = ? `;
+    const query =` SELECT user_id, name, email, role, shopping_cart, tax_id, home_address FROM Users WHERE user_id = ? `;
 
     db.get(query, [userId], (err, row) => {
         if (err) {
@@ -147,5 +172,6 @@ module.exports = {
     getAllUsers,
     getUserByEmail,
     updateUser,
-    getUserProfile
+    getUserProfile,
+    updateUserAddressandTaxid
 };
