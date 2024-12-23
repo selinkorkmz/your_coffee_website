@@ -72,8 +72,7 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
     let totalOrderPrice = 0;
 
     // Calculate the total price for the entire cart
-    cartIte
-ms.forEach((item) => {
+    cartItems.forEach((item) => {
       const priceAtPurchase =
         item.discounted_price !== null ? item.discounted_price : item.price;
       const totalPrice = priceAtPurchase * item.quantity;
@@ -145,6 +144,7 @@ ms.forEach((item) => {
           totalOrderPrice,
           cartItems,
           orderDate,
+          orderId,
           (pdfErr, pdfPath) => {
             if (pdfErr) {
               return callback(pdfErr);

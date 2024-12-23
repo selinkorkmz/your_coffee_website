@@ -33,13 +33,13 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
                     (name, description, model, serial_number, price,discounted_price, quantity_in_stock, warranty_status, distributor_info, origin, roast_level, power_usage, category) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         
-                // Inserting coffee product examples
+                //Inserting coffee product examples
                 //db.run(insert, ["Espresso Blend", "A rich and smooth espresso blend.", "Model1", "SN123", 15.99,null, 100, "1 year", "CoffeeCo", "Brazil", "Medium", null, "Coffee"]);
                 //db.run(insert, ["House Blend", "Balanced and flavorful house blend.", "Model2", "SN124", 12.99, null,50, "6 months", "CoffeeCo", "Colombia", "Dark", null, "Coffee"]);
         
                 // Inserting coffee machine examples
-              // db.run(insert, ["Espresso Machine", "High-quality espresso machine.", "X100", "SN200", 199.99,null, 20, "2 years", "MachineMakers", null, null, "1500W", "Coffee Machine"]);
-            //db.run(insert, ["Drip Coffee Maker", "Easy-to-use drip coffee maker.", "D200", "SN201", 49.99,null, 30, "1 year", "MachineMakers", null, null, "800W", "Coffee Machine"]);
+                //db.run(insert, ["Espresso Machine", "High-quality espresso machine.", "X100", "SN200", 199.99,null, 20, "2 years", "MachineMakers", null, null, "1500W", "Coffee Machine"]);
+                //db.run(insert, ["Drip Coffee Maker", "Easy-to-use drip coffee maker.", "D200", "SN201", 49.99,null, 30, "1 year", "MachineMakers", null, null, "800W", "Coffee Machine"]);
             }
         });
 
