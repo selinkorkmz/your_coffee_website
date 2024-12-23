@@ -9,7 +9,6 @@ const {
     cancelOrder,
     processReturn, 
     getInvoicesInRange,
-    exportInvoicesAsPDF
 } = require('../controllers/orderController');
 
 const ordersController = require('../controllers/orderController');
@@ -83,14 +82,6 @@ router.get(
   authenticateJWT,
   authorizeRole(['Sales Manager']), // Restrict to Sales Manager
   getInvoicesInRange
-);
-
-// Export invoices as PDF (Sales Managers only)
-router.get(
-  '/invoices/export',
-  authenticateJWT,
-  authorizeRole(['Sales Manager']), // Restrict to Sales Manager
-  exportInvoicesAsPDF
 );
 
 module.exports = router;

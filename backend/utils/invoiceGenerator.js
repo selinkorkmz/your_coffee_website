@@ -8,10 +8,10 @@ const fs = require("fs");
  * @param {Array} cartItems - List of items in the cart.
  * @param {Function} callback - Callback function to return the file path or error.
  */
-const generateInvoicePDF = (userId, totalAmount, cartItems, callback) => {
+const generateInvoicePDF = (userId, totalAmount, cartItems, orderDate, callback) => {
   try {
     const doc = new PDFDocument();
-    const filePath = `./invoices/invoice-${userId}-${Date.now()}.pdf`;
+    const filePath = `./invoices/invoice-${userId}-${new Date(orderDate).getTime()}.pdf`;
 
     // Create a write stream to save the PDF file
     doc.pipe(fs.createWriteStream(filePath));

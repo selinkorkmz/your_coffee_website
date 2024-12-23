@@ -72,7 +72,8 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
     let totalOrderPrice = 0;
 
     // Calculate the total price for the entire cart
-    cartItems.forEach((item) => {
+    cartIte
+ms.forEach((item) => {
       const priceAtPurchase =
         item.discounted_price !== null ? item.discounted_price : item.price;
       const totalPrice = priceAtPurchase * item.quantity;
@@ -140,12 +141,25 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
 
         // Generate the invoice PDF
         generateInvoicePDF(
-            userId,
-            totalOrderPrice,
-            cartItems,
-            (pdfErr, pdfPath) => {
-              if (pdfErr) {
-                return callback(pdfErr);
+          userId,
+          totalOrderPrice,
+          cartItems,
+          orderDate,
+          (pdfErr, pdfPath) => {
+            if (pdfErr) {
+              return callback(pdfErr);
+            }
+
+            // Insert the invoice into the database
+            const invoiceDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const insertInvoiceQuery = `
+              INSERT INTO Invoices (order_id, user_id, total_price, invoice_date)
+              VALUES (?, ?, ?, ?)
+            `;
+            db.run(insertInvoiceQuery, [orderId, userId, totalOrderPrice, invoiceDate], (err) => {
+              if (err) {
+                console.error('Error inserting invoice into database:', err.message);
+                return callback(new Error('Failed to save invoice.'));
               }
 
               // Send invoice email
@@ -158,13 +172,14 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
                 db.run(clearCartQuery, [userId], (clearErr) => {
                   if (clearErr) return callback(clearErr);
                   callback(null, {
-                    message: "Payment confirmed, order created and cart cleared.",
-                    invoiceFileName: pdfPath.split("/").slice(-1)[0]
+                    message: "Payment confirmed, order created, and cart cleared.",
+                    invoiceFileName: pdfPath.split("/").slice(-1)[0],
                   });
                 });
               });
-            }
-          );
+            });
+          }
+        );
       }
     );
   });

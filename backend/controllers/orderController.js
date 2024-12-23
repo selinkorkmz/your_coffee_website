@@ -324,45 +324,4 @@ const processReturn = (orderId, callback) => {
     });
 };
 
-
-
-// Export all invoices in a date range
-const exportInvoicesAsPDF = (req, res) => {
-  const { startDate, endDate } = req.query;
-
-  if (!startDate || !endDate) {
-      return res.status(400).json({ message: 'Start and end dates are required' });
-  }
-
-  const invoicesFolder = path.join(__dirname, '../invoices');
-  const invoiceQuery = `
-      SELECT * 
-      FROM Invoices 
-      WHERE invoice_date BETWEEN ? AND ?
-  `;
-
-  db.all(invoiceQuery, [startDate, endDate], (err, rows) => {
-      if (err) {
-          return res.status(500).json({ message: 'Failed to fetch invoices', error: err.message });
-      }
-
-      const zip = require('adm-zip');
-      const archive = new zip();
-
-      rows.forEach(invoice => {
-          const invoicePath = path.join(invoicesFolder, `invoice-${invoice.invoice_id}.pdf`);
-          if (fs.existsSync(invoicePath)) {
-              archive.addLocalFile(invoicePath);
-          }
-      });
-
-      const zipPath = path.join(invoicesFolder, `invoices-${startDate}-to-${endDate}.zip`);
-      archive.writeZip(zipPath);
-
-      res.download(zipPath, `invoices-${startDate}-to-${endDate}.zip`, () => {
-          fs.unlinkSync(zipPath); // Remove the zip after sending
-      });
-  });
-};
-
-module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, processReturn, getInvoicesInRange, exportInvoicesAsPDF };
+module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, processReturn, getInvoicesInRange };
