@@ -10,6 +10,7 @@ const {
     setDiscountOnProduct,
     getAllCategories,
     searchProducts,
+    updateProductPrice,
     updateProduct,
     deleteProduct
 } = require('../controllers/productController.js');  // Import the functions from the controller
@@ -175,6 +176,29 @@ router.put( '/:id/updatestock',
       });
     }
   );
+
+  router.put('/:id/updateprice', 
+    authenticateJWT, 
+    authorizeRole(['Sales Manager', 'Admin']), 
+    (req, res) => {
+        const productId = req.params.id;
+        const { newPrice } = req.body;
+
+        // Validate the new price input
+        if (newPrice === undefined || isNaN(newPrice) || newPrice <= 0) {
+            return res.status(400).json({ message: 'Valid price is required.' });
+        }
+
+        updateProductPrice(productId, newPrice, (err, result) => {
+            if (err) {
+                return res
+                    .status(500)
+                    .json({ message: 'Failed to update product price', error: err.message });
+            }
+            res.status(200).json(result);
+        });
+    }
+);
 
 
 module.exports = router;

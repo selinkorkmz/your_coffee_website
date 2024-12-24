@@ -243,6 +243,25 @@ const updateProductStock = (productId, quantity, callback) => {
   });
 };
 
+const updateProductPrice = (productId, newPrice, callback) => {
+  if (newPrice <= 0) {
+      return callback(new Error('Price must be greater than 0.'));
+  }
+
+  const query = `UPDATE Products SET price = ? WHERE product_id = ?`;
+
+  db.run(query, [newPrice, productId], function (err) {
+      if (err) {
+          console.error('Error updating product price:', err.message);
+          return callback(err);
+      } else if (this.changes === 0) {
+          return callback(new Error('Product not found.'));
+      } else {
+          callback(null, { message: 'Price updated successfully', productId });
+      }
+  });
+};
+
 module.exports = {
   updateProductStock,
   getProductByField,
@@ -252,4 +271,5 @@ module.exports = {
   getAllCategories,
   searchProducts,
   setDiscountOnProduct,
+  updateProductPrice
 };
