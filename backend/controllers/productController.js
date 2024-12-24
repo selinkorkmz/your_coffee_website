@@ -262,6 +262,23 @@ const updateProductPrice = (productId, newPrice, callback) => {
   });
 };
 
+// Function to delete a product by its product_id
+const deleteProduct = (productId, callback) => {
+  const query = `DELETE FROM Products WHERE product_id = ?`;
+
+  db.run(query, [productId], function (err) {
+    if (err) {
+      console.error('Error deleting product:', err.message);
+      callback(err); // Return error if the query fails
+    } else if (this.changes === 0) {
+      // If no rows were deleted, the product ID does not exist
+      callback(new Error('Product not found.'));
+    } else {
+      callback(null, { message: 'Product deleted successfully', productId });
+    }
+  });
+};
+
 module.exports = {
   updateProductStock,
   getProductByField,
@@ -271,5 +288,6 @@ module.exports = {
   getAllCategories,
   searchProducts,
   setDiscountOnProduct,
-  updateProductPrice
+  updateProductPrice,
+  deleteProduct
 };

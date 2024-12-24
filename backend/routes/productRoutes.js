@@ -98,16 +98,6 @@ router.put('/:id', authenticateJWT, authorizeRole(['Product Manager', 'Admin']),
     });
 });
 
-// Route to delete a product (Only for Product Managers and Admins)
-router.delete('/:id', authenticateJWT, authorizeRole(['Product Manager', 'Admin']), (req, res) => {
-    const productId = req.params.id;
-    deleteProduct(productId, (err) => {
-        if (err) {
-            return res.status(500).json({ message: 'Failed to delete product', error: err.message });
-        }
-        res.status(200).json({ message: 'Product deleted successfully' });
-    });
-});
 
 router.get('/categories', (req, res) => {
     getAllCategories((err, categories) => {
@@ -200,5 +190,16 @@ router.put( '/:id/updatestock',
     }
 );
 
+// Route to delete a product (Only for Product Managers and Admins)
+router.delete('/:id', authenticateJWT, authorizeRole(['Product Manager', 'Admin']), (req, res) => {
+    const productId = req.params.id;
+
+    deleteProduct(productId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to delete product', error: err.message });
+        }
+        res.status(200).json(result); // Return success message
+    });
+});
 
 module.exports = router;
