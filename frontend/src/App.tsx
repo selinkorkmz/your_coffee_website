@@ -17,6 +17,7 @@ import { AuthProvider } from "./components/AuthContext";
 import CheckoutPage from "./pages/CheckoutPage";
 import AdminPanel from "./pages/Admin/AdminPanel";
 import Wishlist from "./components/profile/Wishlist";
+import { Bounce, ToastContainer } from "react-toastify";
 
 const RootLayout = () => {
   return (
@@ -86,6 +87,19 @@ const router = createBrowserRouter([
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ToastContainer
+position="top-right"
+autoClose={5000}
+hideProgressBar={false}
+newestOnTop={false}
+closeOnClick={false}
+rtl={false}
+pauseOnFocusLoss
+draggable
+pauseOnHover
+theme="colored"
+transition={Bounce}
+/>
       <AuthProvider>
         <RouterProvider router={router} />
       </AuthProvider>

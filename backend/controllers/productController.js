@@ -183,7 +183,7 @@ const searchProducts = (searchTerm, callback) => {
 const setDiscountOnProduct = (productId, discountRate, callback) => {
     console.log('Applying discount:', productId, discountRate);
 
-    if (discountRate <= 0 || discountRate >= 1) {
+    if (discountRate < 0 || discountRate >= 1) {
         return callback(new Error('Invalid discount rate'), null);
     }
 
@@ -197,7 +197,7 @@ const setDiscountOnProduct = (productId, discountRate, callback) => {
 
         // Update the product's discounted price in the database
         const query = `UPDATE Products SET discounted_price = ? WHERE product_id = ?`;
-        db.run(query, [newPrice, productId], (updateErr) => {
+        db.run(query, [discountRate === 0 ? undefined : newPrice, productId], (updateErr) => {
             if (updateErr) {
                 console.error('Error updating product price:', updateErr.message);
                 return callback(updateErr, null);

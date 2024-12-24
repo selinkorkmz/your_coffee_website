@@ -169,7 +169,7 @@ const ProductDetailsPage = () => {
                 {product.discounted_price ? (
                   <>
                     <span className="text-3xl text-black font-semibold">
-                      ${product.discounted_price}
+                      ${product.discounted_price.toFixed(2)}
                     </span>
                     <span className="text-3xl text-gray-500 line-through">
                       ${product.price}

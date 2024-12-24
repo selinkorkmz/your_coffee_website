@@ -9,9 +9,6 @@ export function DatePicker({selected, setSelected}: {selected: Date | undefined,
       mode="single"
       selected={selected}
       onSelect={setSelected}
-      footer={
-        selected ? `Selected: ${selected.toLocaleDateString()}` : "Pick a day."
-      }
     />
   );
 }

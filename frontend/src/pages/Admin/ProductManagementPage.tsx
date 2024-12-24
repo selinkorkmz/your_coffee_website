@@ -1,14 +1,13 @@
 import { useAuth } from "@/components/AuthContext";
-import { fetchAllProducts, updateDiscountRate, updateStock } from "@/lib/requests";
+import { addProductToDatabase, deleteProductFromDatabase, fetchAllProducts, updateDiscountRate, updatePrice, updateStock } from "@/lib/requests";
 import { Product } from "@/types/product";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { PiSmileySad } from "react-icons/pi";
-import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
 
 function ProductManagementPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-  const { data: products, isLoading } = useQuery({
+  const { data: products, isLoading, refetch } = useQuery({
     queryKey: ["products"],
     queryFn: fetchAllProducts,
   });
@@ -24,8 +23,8 @@ function ProductManagementPage() {
     <section className="bg-amber-50 p-3 sm:p-5 antialiased">
       <div className="mx-auto max-w-screen-2xl px-4 lg:px-12">
         <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
-          <SearchAndFilterRow />
-          <ProductTable products={filteredProducts} />
+          <SearchAndFilterRow refetch={refetch} />
+          <ProductTable products={filteredProducts} refetch={refetch} />
         </div>
       </div>
     </section>
@@ -120,16 +119,19 @@ function FilterDropdown() {
           </button>
         </h2>
         <div id="price-body" className="hidden" aria-labelledby="price-heading">
-          <div className="flex items-center py-2 space-x-3 font-light border-b border-gray-200 dark:border-gray-600"><select id="price-from" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"><option disabled="" selected="">From</option><option>$500</option><option>$2500</option><option>$5000</option></select><select id="price-to" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"><option disabled="" selected="">To</option><option>$500</option><option>$2500</option><option>$5000</option></select></div>
+          <div className="flex items-center py-2 space-x-3 font-light border-b border-gray-200 dark:border-gray-600"><select id="price-from" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"><option>From</option><option>$500</option><option>$2500</option><option>$5000</option></select><select id="price-to" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"><option>To</option><option>$500</option><option>$2500</option><option>$5000</option></select></div>
         </div>
       </div>
     </div>
   )
 }
 
-function SearchAndFilterRow() {
+function SearchAndFilterRow({refetch}: any) {
+  const { user } = useAuth()
   const [isProductModalOpen, setProductModalOpen] = useState(false);
   const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
+
+  const notify = (msg: string) => toast(msg);
 
   const toggleProductModal = () => {
     console.log("openening ")
@@ -141,6 +143,7 @@ function SearchAndFilterRow() {
   };
   return (
     <div className="flex flex-col md:flex-row items-stretch md:items-center3 space-y-3 md:space-y-0 justify-between mx-4 py-4 border-t dark:border-gray-700">
+      
       <div className="w-full md:w-1/2">
         <form className="flex items-center">
           <label htmlFor="simple-search" className="sr-only">Search</label>
@@ -155,18 +158,20 @@ function SearchAndFilterRow() {
         </form>
       </div>
       <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-        <button onClick={toggleCategoryModal} type="button" id="createProductButton" data-modal-toggle="createProductModal" className="flex items-center justify-center text-white bg-sky-500 hover:bg-sky-600 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-          <svg className="h-3.5 w-3.5 mr-1.5 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
-          </svg>
-          Add category
-        </button>
-        <button onClick={toggleProductModal} type="button" id="createProductButton" className="flex items-center justify-center text-white bg-sky-500 hover:bg-sky-600 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-          <svg className="h-3.5 w-3.5 mr-1.5 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
-          </svg>
-          Add product
-        </button>
+        {user.role === "Product Manager" ? <>
+          <button onClick={toggleCategoryModal} type="button" id="createProductButton" data-modal-toggle="createProductModal" className="flex items-center justify-center text-white bg-sky-500 hover:bg-sky-600 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+            <svg className="h-3.5 w-3.5 mr-1.5 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+            </svg>
+            Add category
+          </button>
+          <button onClick={toggleProductModal} type="button" id="createProductButton" className="flex items-center justify-center text-white bg-sky-500 hover:bg-sky-600 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+            <svg className="h-3.5 w-3.5 mr-1.5 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+            </svg>
+            Add product
+          </button>
+        </> : null}
         <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown" className="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="h-4 w-4 mr-1.5 -ml-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
@@ -180,7 +185,7 @@ function SearchAndFilterRow() {
       </div>
       {/* Modals */}
       {isProductModalOpen && (
-        <CreateProductModal onClose={toggleProductModal} />
+        <CreateProductModal onClose={() => setProductModalOpen(false)} refetch={refetch} notify={notify} />
       )}
       {/* {isCategoryModalOpen && (
         <CreateCategoryModal onClose={toggleCategoryModal} />
@@ -189,24 +194,28 @@ function SearchAndFilterRow() {
   )
 }
 
-function ProductTable({ products }: { products: Product[] }) {
+function ProductTable({ products, refetch }: { products: Product[], refetch: any }) {
   const { user } = useAuth()
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+      <table className="w-full text-sm text-left text-gray-500">
         <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
           <tr>
             <th scope="col" className="p-4">Product</th>
             <th scope="col" className="p-4">Category</th>
             <th scope="col" className="p-4">Cost</th>
             <th scope="col" className="p-4">Price</th>
-            <th scope="col" className="p-4">Discount</th>
-            <th scope="col" className="p-4">Stock</th>
+            <th scope="col" className="p-4 text-center">Discount Rate</th>
+            <th scope="col" className="p-4 text-center">
+              {user.role === "Product Manager" ? "Stock" : "Discounted Price"}
+            </th>
+            <th scope="col" className="p-4 text-center">Actions</th>
+
           </tr>
         </thead>
         <tbody>
           {
-            products.map((product) => <ProductRow product={product} userRole={user.role} />)
+            products.map((product) => <ProductRow product={product} userRole={user.role} refetch={refetch} />)
           }
         </tbody>
       </table>
@@ -214,9 +223,10 @@ function ProductTable({ products }: { products: Product[] }) {
   )
 }
 
-function ProductRow({ product, userRole }: { product: Product, userRole: string }) {
-  const [discountRate, setDiscountRate] = useState(product.discounted_price ? (product.price - product.discounted_price) / product.price * 100 : 0)
+function ProductRow({ product, userRole, refetch }: { product: Product, userRole: string, refetch: any }) {
+  const [discountRate, setDiscountRate] = useState(product.discounted_price ? ((product.price - product.discounted_price) / product.price * 100).toString() : "0")
   const [quantity, setQuantity] = useState(product.quantity_in_stock)
+  const [price, setPrice] = useState(product.price.toString())
 
   const { mutate: updateDiscountRateMutation } = useMutation({
     mutationFn: ({
@@ -224,12 +234,13 @@ function ProductRow({ product, userRole }: { product: Product, userRole: string 
       rate,
     }: {
       productId: number;
-      rate: number;
+      rate: string;
     }) => {
-      const result = updateDiscountRate(productId, rate);
+      const result = updateDiscountRate(productId, parseFloat(rate) / 100);
       return result; // Ensure the return value is passed to ⁠ onSuccess ⁠
     },
     onSuccess: (data: any) => {
+      refetch()
       alert(data.message)
     },
   });
@@ -246,10 +257,42 @@ function ProductRow({ product, userRole }: { product: Product, userRole: string 
       return result; // Ensure the return value is passed to ⁠ onSuccess ⁠
     },
     onSuccess: (data: any) => {
+      refetch()
       alert(data.message)
     },
   });
 
+  const { mutate: updatePriceMutation } = useMutation({
+    mutationFn: ({
+      productId,
+      price,
+    }: {
+      productId: number;
+      price: string;
+    }) => {
+      const result = updatePrice(productId, parseFloat(parseFloat(price).toFixed(2)));
+      return result; // Ensure the return value is passed to ⁠ onSuccess ⁠
+    },
+    onSuccess: (data: any) => {
+      refetch()
+      alert(data.message)
+    },
+  });
+
+  const { mutate: deleteProductMutation } = useMutation({
+    mutationFn: ({
+      productId
+    }: {
+      productId: number;
+    }) => {
+      const result = deleteProductFromDatabase(productId);
+      return result; // Ensure the return value is passed to ⁠ onSuccess ⁠
+    },
+    onSuccess: (data: any) => {
+      refetch()
+      toast.success(data.message)
+    },
+  });
 
   function handleEdit() {
     if (userRole === "Product Manager") {
@@ -257,6 +300,14 @@ function ProductRow({ product, userRole }: { product: Product, userRole: string 
     } else if (userRole === "Sales Manager") {
       updateDiscountRateMutation({ productId: product.product_id, rate: discountRate })
     }
+  }
+
+  function handleUpdate() {
+    updatePriceMutation({ productId: product.product_id, price })
+  }
+
+  function handleDelete() {
+    deleteProductMutation({productId: product.product_id})
   }
 
   return (
@@ -288,39 +339,78 @@ function ProductRow({ product, userRole }: { product: Product, userRole: string 
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center">
-          ${product.price}
+          {userRole === "Sales Manager" ? (
+            <div className="flex items-center">
+              <span>$</span>
+              <input
+                type="text"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                className="w-20 text-xs p-1 ml-1"
+              />
+            </div>
+          ) : (
+            `$${product.price}`
+          )}
         </div>
+
       </td>
       <td className="px-4 py-3">
         {userRole === "Sales Manager" ?
-          <input type="number" value={discountRate} onChange={(event) => setDiscountRate(parseInt(event.target.value, 10))} className="w-20 text-xs p-1" /> :
-          <span>{discountRate.toFixed(2)}%</span>
+          <input type="text" value={discountRate} onChange={(event) => setDiscountRate(event.target.value)} className="w-20 text-xs p-1" /> :
+          <span>{parseFloat(discountRate).toFixed(2)}%</span>
         }
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center">
-          <div className={`h-4 w-4 rounded-full mr-2 ${product.quantity_in_stock < 20 ? "bg-red-700" : product.quantity_in_stock < 100 ? "bg-yellow-300" : "bg-green-400"}`}></div>
           {userRole === "Product Manager" ?
-            <input type="number" value={quantity} onChange={(event) => setQuantity(parseInt(event.target.value, 10))} className="w-20 text-xs p-1" /> :
-            <span>{product.quantity_in_stock}</span>
+            <>
+              <div className={`h-4 w-4 rounded-full mr-2 ${product.quantity_in_stock < 20 ? "bg-red-700" : product.quantity_in_stock < 100 ? "bg-yellow-300" : "bg-green-400"}`}></div>
+              <input type="number" value={quantity} onChange={(event) => setQuantity(parseInt(event.target.value, 10))} className="w-20 text-xs p-1" />
+            </> :
+            <span
+              className={product.discounted_price ? "text-green-500" : "text-red-500"}>
+              {product.discounted_price ? `$${product.discounted_price.toFixed(2)}` : "-"}
+            </span>
+
           }
         </div>
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center space-x-4">
-          <button type="button" data-drawer-target="drawer-update-product" data-drawer-show="drawer-update-product" aria-controls="drawer-update-product" className="py-2 px-3 flex items-center text-sm font-medium text-center text-white bg-slate-500 rounded-lg hover:bg-black" onClick={handleEdit}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 -ml-0.5" viewBox="0 0 20 20" fill="white" aria-hidden="true">
-              <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-              <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
-            </svg>
-            Save Stock
-          </button>
-          <button type="button" className="flex items-center text-red-700 hover:text-white border border-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-3 py-2 text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 -ml-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            Delete
-          </button>
+          {userRole === "Product Manager" ?
+            <>
+              <button type="button" data-drawer-target="drawer-update-product" data-drawer-show="drawer-update-product" aria-controls="drawer-update-product" className="py-2 px-3 flex items-center text-sm font-medium text-center text-white bg-slate-500 rounded-lg hover:bg-black" onClick={handleEdit}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 -ml-0.5" viewBox="0 0 20 20" fill="white" aria-hidden="true">
+                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                  <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                </svg>
+                Save Stock
+              </button>
+              <button type="button" className="flex items-center text-red-700 hover:text-white border border-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-3 py-2 text-center" onClick={handleDelete}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 -ml-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" onClick={handleDelete}/>
+                </svg>
+                Delete
+              </button>
+            </> :
+            <div className="flex gap-2">
+              <button type="button"className="py-2 px-3 flex items-center text-sm font-medium text-center text-white bg-slate-500 rounded-lg hover:bg-black" onClick={handleUpdate}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 -ml-0.5" viewBox="0 0 20 20" fill="white" aria-hidden="true">
+                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                  <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                </svg>
+                Save Price
+              </button>
+              <button type="button" className="py-2 px-3 flex items-center text-sm font-medium text-center text-white bg-slate-500 rounded-lg hover:bg-black" onClick={handleEdit}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 -ml-0.5" viewBox="0 0 20 20" fill="white" aria-hidden="true">
+                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                  <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                </svg>
+                Save New Discount Rate
+              </button>
+            </div>
+          }
         </div>
       </td>
     </tr>
@@ -328,20 +418,20 @@ function ProductRow({ product, userRole }: { product: Product, userRole: string 
   )
 
 }
-function CreateProductModal({ onClose }: { onClose: () => void }) {
+function CreateProductModal({ onClose, refetch, notify }: { onClose: () => void, refetch: any, notify: any }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     model: '',
-    serialNumber: '',
+    serial_number: '',
     price: '',
-    discountedPrice: '',
-    quantityInStock: '',
-    warrantyStatus: '',
-    distributorInfo: '',
+    discounted_price: '',
+    quantity_in_stock: '',
+    warranty_status: '',
+    distributor_info: '',
     origin: '',
-    roastLevel: '',
-    powerUsage: '',
+    roast_level: '',
+    power_usage: '',
     category: '',
     cost: ''
   });
@@ -355,28 +445,21 @@ function CreateProductModal({ onClose }: { onClose: () => void }) {
   };
 
   const { mutate: addProduct } = useMutation({
-    mutationFn: async (newProduct: typeof formData) => {
+    mutationFn: (newProduct: typeof formData) => {
       // use function from requests
+      return addProductToDatabase(newProduct);
     },
-    onSuccess: () => {
-      // Handle success (e.g., show notification, clear form, etc.)
-      console.log('Product added successfully!');
-      setFormData({
-        name: '',
-        description: '',
-        model: '',
-        serialNumber: '',
-        price: '',
-        discountedPrice: '',
-        quantityInStock: '',
-        warrantyStatus: '',
-        distributorInfo: '',
-        origin: '',
-        roastLevel: '',
-        powerUsage: '',
-        category: '',
-        cost: ''
-      });
+    onSuccess: (response) => {
+      if (response.error) {
+        // Show error message to the user
+        console.error("Error adding product:", response.error);
+        notify(`Failed to add product: ${response.error}`);
+        return;
+      }
+
+      refetch()
+      notify("Product added successfully!");
+      onClose();
     },
     onError: (error) => {
       // Handle error (e.g., show error notification)
@@ -384,20 +467,38 @@ function CreateProductModal({ onClose }: { onClose: () => void }) {
     }
   });
 
-  const handleSubmit = (event: any) => {
+  const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    addProduct(formData);
+    addProduct(formData)
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="relative p-4 w-full max-w-2xl bg-white rounded-lg shadow dark:bg-gray-800">
         <div className="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
           <div className="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add Product</h3>
-            <button onClick={onClose} type="button" className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="createProductModal">
-              <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Add Product
+            </h3>
+            <button
+              onClick={onClose}
+              type="button"
+              className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+              data-modal-toggle="createProductModal"
+            >
+              <svg
+                aria-hidden="true"
+                className="w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span className="sr-only">Close modal</span>
             </button>
@@ -406,70 +507,252 @@ function CreateProductModal({ onClose }: { onClose: () => void }) {
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 mb-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Product Name</label>
-                <input type="text" name="name" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.name} />
+                <label
+                  htmlFor="name"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Product Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.name}
+                />
               </div>
               <div>
-                <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-                <textarea name="description" id="description" rows={3} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.description}></textarea>
+                <label
+                  htmlFor="description"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  id="description"
+                  rows={3}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.description}
+                ></textarea>
               </div>
               <div>
-                <label htmlFor="model" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Model</label>
-                <input type="text" name="model" id="model" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.model} />
+                <label
+                  htmlFor="category"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Category <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="category"
+                  id="category"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.category}
+                />
               </div>
               <div>
-                <label htmlFor="serialNumber" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Serial Number</label>
-                <input type="text" name="serialNumber" id="serialNumber" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.serialNumber} />
+                <label
+                  htmlFor="model"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Model <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="model"
+                  id="model"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.model}
+                />
               </div>
               <div>
-                <label htmlFor="price" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Price</label>
-                <input type="number" step="0.01" name="price" id="price" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.price} />
+                <label
+                  htmlFor="serial_number"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Serial Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="serial_number"
+                  id="serial_number"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.serial_number}
+                />
               </div>
               <div>
-                <label htmlFor="discountedPrice" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Discounted Price</label>
-                <input type="number" step="0.01" name="discountedPrice" id="discountedPrice" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.discountedPrice} />
+                <label
+                  htmlFor="cost"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Cost <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="cost"
+                  id="cost"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.cost}
+                />
               </div>
               <div>
-                <label htmlFor="quantityInStock" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Quantity in Stock</label>
-                <input type="number" name="quantityInStock" id="quantityInStock" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.quantityInStock} />
+                <label
+                  htmlFor="price"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Price <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="price"
+                  id="price"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.price}
+                />
               </div>
               <div>
-                <label htmlFor="warrantyStatus" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Warranty Status</label>
-                <input type="text" name="warrantyStatus" id="warrantyStatus" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.warrantyStatus} />
+                <label
+                  htmlFor="price"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Discounted Price
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="discounted_price"
+                  id="discounted_price"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  onChange={handleChange}
+                  value={formData.discounted_price}
+                />
               </div>
               <div>
-                <label htmlFor="distributorInfo" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Distributor Info</label>
-                <input type="text" name="distributorInfo" id="distributorInfo" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.distributorInfo} />
+                <label
+                  htmlFor="quantity_in_stock"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Quantity in Stock <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="quantity_in_stock"
+                  id="quantity_in_stock"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.quantity_in_stock}
+                />
               </div>
               <div>
-                <label htmlFor="origin" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Origin</label>
-                <input type="text" name="origin" id="origin" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.origin} />
+                <label
+                  htmlFor="distributor_info"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Distributor Info <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="distributor_info"
+                  id="distributor_info"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  required
+                  onChange={handleChange}
+                  value={formData.distributor_info}
+                />
+              </div>
+
+              {/* Optional Fields */}
+              <div>
+                <label
+                  htmlFor="warranty_status"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Warranty Status
+                </label>
+                <input
+                  type="text"
+                  name="warranty_status"
+                  id="warranty_status"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  onChange={handleChange}
+                  value={formData.warranty_status}
+                />
               </div>
               <div>
-                <label htmlFor="roastLevel" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Roast Level</label>
-                <input type="text" name="roastLevel" id="roastLevel" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.roastLevel} />
+                <label
+                  htmlFor="origin"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Origin
+                </label>
+                <input
+                  type="text"
+                  name="origin"
+                  id="origin"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  onChange={handleChange}
+                  value={formData.origin}
+                />
               </div>
               <div>
-                <label htmlFor="powerUsage" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Power Usage</label>
-                <input type="text" name="powerUsage" id="powerUsage" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.powerUsage} />
+                <label
+                  htmlFor="roast_level"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Roast Level
+                </label>
+                <input
+                  type="text"
+                  name="roast_level"
+                  id="roast_level"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  onChange={handleChange}
+                  value={formData.roast_level}
+                />
               </div>
               <div>
-                <label htmlFor="category" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
-                <input type="text" name="category" id="category" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.category} />
-              </div>
-              <div>
-                <label htmlFor="cost" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cost</label>
-                <input type="number" name="cost" id="cost" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required onChange={handleChange} value={formData.cost} />
+                <label
+                  htmlFor="power_usage"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Power Usage
+                </label>
+                <input
+                  type="text"
+                  name="power_usage"
+                  id="power_usage"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  onChange={handleChange}
+                  value={formData.power_usage}
+                />
               </div>
             </div>
             <div className="flex justify-center">
-              <button type="submit" className="flex items-center text-green-600 hover:text-white border border-green-600 hover:bg-green-700 font-medium rounded-lg text-sm px-3 py-2 text-center">
-              Add Product
+              <button
+                type="submit"
+                className="flex items-center text-green-600 hover:text-white border border-green-600 hover:bg-green-700 font-medium rounded-lg text-sm px-3 py-2 text-center"
+              >
+                Add Product
               </button>
             </div>
-            
           </form>
-
         </div>
       </div>
     </div>

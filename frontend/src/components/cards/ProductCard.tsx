@@ -142,7 +142,7 @@ export function ProductCard({ product }: ProductCardProps) {
               {product.discounted_price ? (
                 <>
                   <span className="text-lg text-black font-bold">
-                    ${product.discounted_price}
+                    ${product.discounted_price.toFixed(2)}
                   </span>
                   <span className="text-lg text-gray-500 line-through">
                     ${product.price}

@@ -75,7 +75,7 @@ router.get('/field/:field/:value', (req, res) => {
 });*/
 
 // Route to add a product (Only for Product Managers and Admins)
-router.post('/add', (req, res) => {
+router.post('/', (req, res) => {
     addProduct(req.body, (err, productId) => {
         if (err) {
             return res.status(500).json({ message: 'Failed to add product', error: err.message });
@@ -130,7 +130,7 @@ router.put('/:id/discount', authenticateJWT, authorizeRole(['Sales Manager', "Cu
     const { discountRate } = req.body;
 
     // Validate the discount rate input
-    if (discountRate === undefined || discountRate <= 0 || discountRate >= 1) {
+    if (discountRate === undefined || discountRate < 0 || discountRate >= 1) {
         return res.status(400).json({ message: 'Invalid or missing discount rate' });
     }
 

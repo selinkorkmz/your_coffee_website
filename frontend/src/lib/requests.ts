@@ -1,3 +1,5 @@
+import { error } from "console";
+
 const API_URL = "http://localhost:3000/api";
 
 export async function loginRequest(email, password) {
@@ -656,7 +658,7 @@ export async function updateDiscountRate(productId: number, rate: number) {
 
 
   try {
-    await fetch(`${API_URL}/products/${productId}/discount`, {
+   const result = await fetch(`${API_URL}/products/${productId}/discount`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -664,7 +666,12 @@ export async function updateDiscountRate(productId: number, rate: number) {
       },
       body: JSON.stringify({ discountRate: rate }),
     });
-
+    if (!result.ok){
+      return {
+        message: (await result.json()).message ?? "Error updating discount rate",
+        success: false
+      }
+    }
     return {
       success: true,
       message: "Discaount rate updated successfully",
@@ -697,6 +704,103 @@ export async function updateStock(productId: number, stock: number) {
     };
   } catch (err) {
     console.error("Error updating stock:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function updatePrice(productId: number, price: number) {
+  const token = localStorage.getItem("token");
+
+
+  try {
+    const result = await fetch(`${API_URL}/products/${productId}/updateprice`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ newPrice: price }),
+    });
+    if (!result.ok){
+      return {
+        message: (await result.json()).message ?? "Error updating price",
+        success: false
+      }
+    }
+    return {
+      success: true,
+      message: "Price updated successfully",
+    };
+  } catch (err) {
+    console.error("Error updating price:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function addProductToDatabase(product) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/products`, {
+      method: "POST",
+      body: JSON.stringify(product), // The product object is directly passed
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const responseBody = await response.json();
+
+    console.log(responseBody, response.ok);
+
+    if (!response.ok) {
+      return {
+        error: responseBody.message,
+      };
+    }
+
+    return {
+      success: true,
+      productId: responseBody.productId, // Return the new product ID if successful
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      error: (err instanceof Error) ? err.message : "Unexpected error",
+    };
+  }
+}
+
+export async function deleteProductFromDatabase(productId:number) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/products/${productId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        error: (await response.json()).message ?? "Error deleting product",
+        success: false
+      };
+    }
+
+    return {
+      success: true,
+      message: "Product deleted successfully",
+    };
+  } catch (err) {
+    console.error("Error deleting product:", err);
     return {
       error: (err as Error).message ?? "Unexpected error",
     };
