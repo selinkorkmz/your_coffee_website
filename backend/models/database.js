@@ -148,6 +148,14 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
         });
 
 
+        db.run(`ALTER TABLE OrderItems ADD COLUMN refund_quantity_requested INTEGER DEFAULT 0`, (err) => {
+            if (err) {
+                console.error('Failed to add refund_quantity_requested column:', err.message);
+            } else {
+                console.log('Column "refund_quantity_requested" added successfully.');
+            }
+        });
+        
 
         // Create Ratings table for reviews and ratings on products
         db.run(`CREATE TABLE IF NOT EXISTS Ratings (
