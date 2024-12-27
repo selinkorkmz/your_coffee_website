@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('../models/database.js');
+const nodemailer = require('nodemailer');
 
 const getAllOrdersWithItems = (req, res) => {
   const query = `
@@ -231,58 +232,168 @@ const cancelOrder = (orderId, callback) => {
     });
   };
   
-  
-const processReturn = (orderId, callback) => {
-    // Ensure callback is passed
+  const requestItemRefund = (orderId, orderItemId, userId, quantity, callback) => {
     if (typeof callback !== 'function') {
       throw new Error("Callback function is required.");
     }
   
-    // 1. Check if the order exists and can be returned
-    const getOrderQuery = `SELECT * FROM Orders WHERE order_id = ?`;
-    db.get(getOrderQuery, [orderId], (err, order) => {
+    // Step 1: Verify the order and its status
+    const getOrderQuery = `SELECT * FROM Orders WHERE order_id = ? AND user_id = ?`;
+    db.get(getOrderQuery, [orderId, userId], (err, order) => {
       if (err) return callback(err);
-      if (!order) {
-        return callback(new Error("Order not found."));
+      if (!order) return callback(new Error("Order not found."));
+  
+      const orderDate = new Date(order.order_date);
+      const currentDate = new Date();
+      const differenceInDays = Math.floor((currentDate - orderDate) / (1000 * 60 * 60 * 24));
+  
+      if (order.order_status !== 'Delivered') {
+        return callback(new Error("Only delivered orders can be requested for refund."));
+      }
+      if (differenceInDays > 30) {
+        return callback(new Error("Return request window has expired (30 days)."));
       }
   
-      // 2. Check if the order is eligible for return (must be 'Delivered' or 'In-Transit')
-      if (order.order_status !== 'Delivered' && order.order_status !== 'In-Transit') {
-        return callback(new Error("This order cannot be returned because it is not delivered or in-transit."));
-      }
+      // Step 2: Check the order item and quantity
+      const getOrderItemQuery = `SELECT * FROM OrderItems WHERE order_item_id = ? AND order_id = ?`;
+      db.get(getOrderItemQuery, [orderItemId, orderId], (err, item) => {
+        if (err) return callback(err);
+        if (!item) return callback(new Error("Order item not found."));
+        if (quantity > item.quantity || quantity <= 0) {
+          return callback(new Error("Invalid quantity requested for refund."));
+        }
   
-      // 3. Update the order status to 'Returned'
-      const updateOrderStatusQuery = `UPDATE Orders SET order_status = 'Returned' WHERE order_id = ?`;
-      db.run(updateOrderStatusQuery, [orderId], function (err) {
-        if (err) return callback(new Error("Failed to update order status to 'Returned'."));
+        // Step 3: Update the `item_status` and `refund_quantity_requested`
+        const updateRefundQuery = `
+          UPDATE OrderItems
+          SET item_status = 'Refund Requested', refund_quantity_requested = ?
+          WHERE order_item_id = ?`;
   
-        // 4. Fetch order items to restore stock
-        const getOrderItemsQuery = `SELECT * FROM OrderItems WHERE order_id = ?`;
-        db.all(getOrderItemsQuery, [orderId], (err, orderItems) => {
-          if (err) return callback(new Error("Failed to retrieve order items."));
-  
-          orderItems.forEach((item) => {
-            // Restore stock for each returned item
-            const updateStockQuery = `UPDATE Products SET quantity_in_stock = quantity_in_stock + ? WHERE product_id = ?`;
-            db.run(updateStockQuery, [item.quantity, item.product_id], (stockErr) => {
-              if (stockErr) return callback(stockErr);
-            });
-          });
-  
-          // 5. Optionally handle refund logic (for completed payments)
-          if (order.payment_status === "Completed") {
-            console.log("Refund process triggered for order:", orderId);
-            // Implement refund logic here (example: refund via payment gateway)
-          }
-  
-          // Return success message
-          callback(null, { message: "Return processed successfully. Stock restored." });
+        db.run(updateRefundQuery, [quantity, orderItemId], (err) => {
+          if (err) return callback(err);
+          callback(null, { message: `Refund request submitted for ${quantity} item(s). Awaiting approval.` });
         });
       });
     });
   };
-
-
+  
+  const approveItemRefund = (orderItemId, approve, callback) => {
+    if (typeof callback !== 'function') {
+      throw new Error("Callback function is required.");
+    }
+  
+    // Step 1: Fetch order item details
+    const getOrderItemQuery = `
+      SELECT oi.*, o.user_id, u.email, u.name 
+      FROM OrderItems oi
+      JOIN Orders o ON oi.order_id = o.order_id
+      JOIN Users u ON o.user_id = u.user_id
+      WHERE oi.order_item_id = ?`;
+  
+    db.get(getOrderItemQuery, [orderItemId], (err, item) => {
+      if (err) return callback(err);
+      if (!item) return callback(new Error("Order item not found."));
+  
+      // Validate refund quantity
+      const requestedQuantity = item.refund_quantity_requested || 0;
+      if (requestedQuantity <= 0 || requestedQuantity > item.quantity) {
+        return callback(new Error("Invalid refund quantity requested."));
+      }
+  
+      if (!approve) {
+        // Reject refund
+        const rejectQuery = `
+          UPDATE OrderItems 
+          SET item_status = 'Normal', refund_quantity_requested = 0 
+          WHERE order_item_id = ?`;
+  
+        db.run(rejectQuery, [orderItemId], (err) => {
+          if (err) return callback(err);
+          callback(null, { message: "Refund request rejected." });
+        });
+      } else {
+        // Approve refund
+        const approveQuery = `
+          UPDATE OrderItems 
+          SET item_status = 'Refunded', refund_quantity_requested = 0 
+          WHERE order_item_id = ?`;
+  
+        db.run(approveQuery, [orderItemId], (err) => {
+          if (err) return callback(err);
+  
+          // Step 2: Restore stock only for approved quantity
+          const updateStockQuery = `
+            UPDATE Products 
+            SET quantity_in_stock = quantity_in_stock + ? 
+            WHERE product_id = ?`;
+  
+          db.run(updateStockQuery, [requestedQuantity, item.product_id], (err) => {
+            if (err) return callback(err);
+  
+            // Step 3: Calculate refund amount based on requested quantity
+            const refundAmount = item.price_at_purchase * requestedQuantity;
+  
+            console.log(`Refund processed for ${requestedQuantity} item(s): $${refundAmount}`);
+  
+            // Step 4: Send refund approval email
+            sendRefundApprovalEmail(item.email, item.name, refundAmount, requestedQuantity, (emailErr) => {
+              if (emailErr) {
+                console.error("Failed to send refund email:", emailErr.message);
+                return callback(emailErr); // Return email error if any
+              }
+  
+              callback(null, {
+                message: `Refund approved for ${requestedQuantity} item(s).`,
+                refund_amount: refundAmount,
+              });
+            });
+          });
+        });
+      }
+    });
+  };
+  
+  // Helper function to send refund approval email
+  const sendRefundApprovalEmail = (email, name, refundAmount, quantity, callback) => {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "your.coffee2024@gmail.com", // Replace with your email
+        pass: "cblx jqda pyqh eddb", // Replace with your app password
+      },
+    });
+  
+    const mailOptions = {
+      from: '"Your Coffee" <your.coffee2024@gmail.com>',
+      to: email,
+      subject: "Refund Approved - Your Coffee",
+      text: `
+        Dear ${name},
+  
+        Your refund request for ${quantity} item(s) has been approved. 
+  
+        Refund Amount: $${refundAmount}
+  
+        The refund will be processed within 5-7 business days.
+  
+        Thank you for shopping with us!
+  
+        Best Regards,
+        Your Coffee Team
+      `,
+    };
+  
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Failed to send refund email:", error.message);
+        return callback(error);
+      }
+      console.log("Email sent: " + info.response);
+      callback(null);
+    });
+  };
+  
   // Retrieve invoices, revenue, and profit in a date range
   const getInvoicesInRange = (req, res) => {
     const { startDate, endDate } = req.query;
@@ -333,4 +444,4 @@ db.all(revenueQuery, [`${startDate}T00:00:00.000Z`, `${endDate}T23:59:59.999Z`],
 
 }
 
-module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, processReturn, getInvoicesInRange };
+module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, getInvoicesInRange,requestItemRefund,approveItemRefund };

@@ -7,8 +7,9 @@ const {
     getAllOrdersByUserId,
     updateOrderStatus,
     cancelOrder,
-    processReturn, 
     getInvoicesInRange,
+    requestItemRefund,
+    approveItemRefund
 } = require('../controllers/orderController');
 
 const ordersController = require('../controllers/orderController');
@@ -62,21 +63,42 @@ router.post('/cancel', authenticateJWT, (req, res) => {
     });
   });
 
-// Route to process a return
-router.post('/return', authenticateJWT, (req, res) => {
-    const { orderId } = req.body;  // Order ID to return
-  
-    // Call the processReturn function
-    processReturn(orderId, (err, result) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      return res.status(200).json({ message: result.message });
-    });
-  });
 
   // Get invoices within date range
 // Get invoices within a date range (Sales Managers only)
 router.get('/invoices', getInvoicesInRange);
+
+// Route to request refund for a specific quantity of an item
+router.put("/:orderId/items/:itemId/refund", authenticateJWT, (req, res) => {
+  const { orderId, itemId } = req.params;
+  const { quantity } = req.body;
+  const { userId } = req.user; // Extract user ID from JWT token
+
+  requestItemRefund(orderId, itemId, userId, quantity, (err, result) => {
+      if (err) {
+          return res.status(400).json({ message: err.message });
+      }
+      res.status(200).json(result);
+  });
+});
+// Route to approve or reject a refund request for a specific order item
+router.put(
+  '/items/:itemId/approve-refund', 
+  authenticateJWT, 
+  authorizeRole(['Sales Manager']), // Only Product Managers can approve/reject refunds
+  (req, res) => {
+      const { approve } = req.body; // Approve or reject status
+      const { itemId } = req.params; // Order Item ID
+
+      // Call the controller function
+      approveItemRefund(itemId, approve, (err, result) => {
+          if (err) {
+              return res.status(400).json({ message: err.message }); // Handle errors
+          }
+          res.status(200).json(result); // Send success response
+      });
+  }
+);
+
 
 module.exports = router;
