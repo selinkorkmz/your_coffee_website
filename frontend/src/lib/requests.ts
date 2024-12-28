@@ -332,7 +332,11 @@ export async function submitRating(productId: number, rating: number) {
   }
 }
 
-export async function submitReview(productId: number, comment: string, rating: number) {
+export async function submitReview(
+  productId: number,
+  comment: string,
+  rating: number
+) {
   const token = localStorage.getItem("token");
   const user = localStorage.getItem("user");
 
@@ -354,7 +358,7 @@ export async function submitReview(productId: number, comment: string, rating: n
       body: JSON.stringify({
         userId,
         comment,
-        rating
+        rating,
       }),
     });
   } catch (err) {
@@ -656,9 +660,8 @@ export async function getOrders() {
 export async function updateDiscountRate(productId: number, rate: number) {
   const token = localStorage.getItem("token");
 
-
   try {
-   const result = await fetch(`${API_URL}/products/${productId}/discount`, {
+    const result = await fetch(`${API_URL}/products/${productId}/discount`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -666,11 +669,12 @@ export async function updateDiscountRate(productId: number, rate: number) {
       },
       body: JSON.stringify({ discountRate: rate }),
     });
-    if (!result.ok){
+    if (!result.ok) {
       return {
-        message: (await result.json()).message ?? "Error updating discount rate",
-        success: false
-      }
+        message:
+          (await result.json()).message ?? "Error updating discount rate",
+        success: false,
+      };
     }
     return {
       success: true,
@@ -686,7 +690,6 @@ export async function updateDiscountRate(productId: number, rate: number) {
 
 export async function updateStock(productId: number, stock: number) {
   const token = localStorage.getItem("token");
-
 
   try {
     await fetch(`${API_URL}/products/${productId}/updatestock`, {
@@ -713,7 +716,6 @@ export async function updateStock(productId: number, stock: number) {
 export async function updatePrice(productId: number, price: number) {
   const token = localStorage.getItem("token");
 
-
   try {
     const result = await fetch(`${API_URL}/products/${productId}/updateprice`, {
       method: "PUT",
@@ -723,11 +725,11 @@ export async function updatePrice(productId: number, price: number) {
       },
       body: JSON.stringify({ newPrice: price }),
     });
-    if (!result.ok){
+    if (!result.ok) {
       return {
         message: (await result.json()).message ?? "Error updating price",
-        success: false
-      }
+        success: false,
+      };
     }
     return {
       success: true,
@@ -771,12 +773,12 @@ export async function addProductToDatabase(product) {
   } catch (err) {
     console.log(err);
     return {
-      error: (err instanceof Error) ? err.message : "Unexpected error",
+      error: err instanceof Error ? err.message : "Unexpected error",
     };
   }
 }
 
-export async function deleteProductFromDatabase(productId:number) {
+export async function deleteProductFromDatabase(productId: number) {
   const token = localStorage.getItem("token");
 
   try {
@@ -791,7 +793,7 @@ export async function deleteProductFromDatabase(productId:number) {
     if (!response.ok) {
       return {
         error: (await response.json()).message ?? "Error deleting product",
-        success: false
+        success: false,
       };
     }
 
@@ -801,6 +803,26 @@ export async function deleteProductFromDatabase(productId:number) {
     };
   } catch (err) {
     console.error("Error deleting product:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function cancelOrder(orderId: number) {
+  const token = localStorage.getItem("token");
+
+  try {
+    await fetch(`${API_URL}/orders/cancel`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ orderId }),
+    });
+  } catch (err) {
+    console.error("Error canceling order:", err);
     return {
       error: (err as Error).message ?? "Unexpected error",
     };
