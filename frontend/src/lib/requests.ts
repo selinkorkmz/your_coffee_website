@@ -828,3 +828,27 @@ export async function cancelOrder(orderId: number) {
     };
   }
 }
+
+export async function requestRefund(
+  orderId: number,
+  orderItemId: number,
+  quantity: number
+) {
+  const token = localStorage.getItem("token");
+
+  try {
+    await fetch(`${API_URL}/orders/${orderId}/items/${orderItemId}/refund`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quantity }),
+    });
+  } catch (err) {
+    console.error("Error requesting refund:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
