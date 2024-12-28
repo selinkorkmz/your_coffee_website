@@ -394,6 +394,78 @@ const cancelOrder = (orderId, callback) => {
     });
   };
   
+  const getRefundRequestedOrders = (callback) => {
+    const query = `
+      SELECT 
+        o.order_id,
+        o.user_id,
+        o.total_price AS order_total_price,
+        o.order_status,
+        o.order_date,
+        o.delivery_address,
+        o.payment_status,
+        o.payment_method,
+        o.transaction_date,
+        oi.order_item_id,
+        oi.product_id,
+        oi.quantity,
+        oi.price_at_purchase,
+        oi.total_price AS item_total_price,
+        oi.refund_quantity_requested,
+        p.name AS product_name,
+        oi.item_status AS refund_status
+      FROM Orders o
+      LEFT JOIN OrderItems oi ON o.order_id = oi.order_id
+      LEFT JOIN Products p ON oi.product_id = p.product_id
+      WHERE oi.item_status = 'Refund Requested'
+    `;
+  
+    db.all(query, [], (err, rows) => {
+      if (err) return callback(err);
+      
+      const refundOrders = [];
+      rows.forEach(row => {
+        const existingOrder = refundOrders.find(order => order.order_id === row.order_id);
+        if (existingOrder) {
+          existingOrder.items.push({
+            order_item_id: row.order_item_id,
+            product_id: row.product_id,
+            quantity: row.quantity,
+            price_at_purchase: row.price_at_purchase,
+            total_price: row.item_total_price,
+            refund_quantity_requested: row.refund_quantity_requested,
+            product_name: row.product_name,
+            refund_status: row.refund_status,
+          });
+        } else {
+          refundOrders.push({
+            order_id: row.order_id,
+            user_id: row.user_id,
+            total_price: row.order_total_price,
+            order_status: row.order_status,
+            order_date: row.order_date,
+            delivery_address: row.delivery_address,
+            payment_status: row.payment_status,
+            payment_method: row.payment_method,
+            transaction_date: row.transaction_date,
+            items: [{
+              order_item_id: row.order_item_id,
+              product_id: row.product_id,
+              quantity: row.quantity,
+              price_at_purchase: row.price_at_purchase,
+              total_price: row.item_total_price,
+              refund_quantity_requested: row.refund_quantity_requested,
+              product_name: row.product_name,
+              refund_status: row.refund_status,
+            }],
+          });
+        }
+      });
+  
+      callback(null, refundOrders);
+    });
+  };
+  
   // Retrieve invoices, revenue, and profit in a date range
   const getInvoicesInRange = (req, res) => {
     const { startDate, endDate } = req.query;
@@ -444,4 +516,4 @@ db.all(revenueQuery, [`${startDate}T00:00:00.000Z`, `${endDate}T23:59:59.999Z`],
 
 }
 
-module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, getInvoicesInRange,requestItemRefund,approveItemRefund };
+module.exports = { getAllOrdersWithItems, getOrderDetails, getAllOrdersByUserId, updateOrderStatus, cancelOrder, getInvoicesInRange,requestItemRefund,approveItemRefund,getRefundRequestedOrders };

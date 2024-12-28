@@ -9,7 +9,8 @@ const {
     cancelOrder,
     getInvoicesInRange,
     requestItemRefund,
-    approveItemRefund
+    approveItemRefund,
+    getRefundRequestedOrders
 } = require('../controllers/orderController');
 
 const ordersController = require('../controllers/orderController');
@@ -100,5 +101,17 @@ router.put(
   }
 );
 
+// Route to get all refund requested orders (accessible by Sales Manager only)
+router.get('/refund-requests', authenticateJWT, authorizeRole(['Sales Manager']), (req, res) => {
+  getRefundRequestedOrders((err, refundOrders) => {
+    if (err) {
+      return res.status(500).json({ message: 'Failed to retrieve refund requested orders', error: err.message });
+    }
 
+    res.status(200).json({
+      message: 'Refund requested orders retrieved successfully',
+      refundOrders,
+    });
+  });
+});
 module.exports = router;
