@@ -852,3 +852,30 @@ export async function requestRefund(
     };
   }
 }
+
+export async function getOrderDetails(orderId: number) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/orders/details/${orderId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return {
+        success: true,
+        order: result.order,
+      };
+    }
+  } catch (err) {
+    console.error("Error fetching order details:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
