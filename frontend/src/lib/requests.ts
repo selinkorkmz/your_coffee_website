@@ -879,3 +879,54 @@ export async function getOrderDetails(orderId: number) {
     };
   }
 }
+
+export async function getRefundRequests() {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/orders/refund-requests`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return {
+        success: true,
+        refunds: result.refundOrders,
+      };
+    }
+    // if 403 throw error
+    else {
+      throw new Error("You are not authorized to view this page");
+    }
+  } catch (err) {
+    console.error("Error fetching refund requests:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
+
+export async function updateRefundRequest(itemId: number, approve: boolean) {
+  const token = localStorage.getItem("token");
+
+  try {
+    await fetch(`${API_URL}/orders/items/${itemId}/approve-refund`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ approve }),
+    });
+  } catch (err) {
+    console.error("Error updating refund request:", err);
+    return {
+      error: (err as Error).message ?? "Unexpected error",
+    };
+  }
+}
