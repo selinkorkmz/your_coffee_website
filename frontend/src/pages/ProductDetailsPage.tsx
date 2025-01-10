@@ -4,7 +4,7 @@ import { Product } from "@/types/product"; // You'll need to create this type
 import { Review } from "@/types/review";
 import { Button } from "@/components/ui/button";
 import { FaRegStar, FaStarHalfAlt, FaStar } from "react-icons/fa";
-import { getProductById, addProductToCart, getReviews } from "@/lib/requests";
+import { getProductById, addProductToCart, getReviews, addToWishlist } from "@/lib/requests";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 const RatingStars = ({ rating }: { rating: number }) => {
@@ -62,7 +62,20 @@ const ProductDetailsPage = () => {
       if (data.success) {
         alert("added to cart");
       } else {
-        alert(data.message)
+        alert(data.message);
+      }
+    },
+  });
+
+  // Add to Wishlist Mutation
+  const { mutate: addToWishlistMutation } = useMutation({
+    mutationFn: ({ userId, productId }: { userId: number; productId: number }) =>
+      addToWishlist(userId, productId),
+    onSuccess: (data: any) => {
+      if (data.success) {
+        alert("Added to wishlist!");
+      } else {
+        alert(data.message || "Failed to add to wishlist.");
       }
     },
   });
@@ -88,21 +101,18 @@ const ProductDetailsPage = () => {
     const savedUser = localStorage.getItem("user");
 
     if (savedUser) {
-      // Add to cart using the server-side mutation
       addProductToCartMutation({
         productId: product!.product_id,
         quantity,
       });
     } else {
-      // Handle local cart for guest users
       const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
       const existingProductIndex = localCart.findIndex(
         (item) => item.productId === product!.product_id
       );
       const stock = product!.quantity_in_stock;
-  
+
       if (existingProductIndex !== -1) {
-        // Product exists in cart
         const quantityInCart = localCart[existingProductIndex].quantity;
         if (stock < quantityInCart + quantity) {
           alert("Total quantity exceeds the available stock.");
@@ -112,7 +122,6 @@ const ProductDetailsPage = () => {
           alert("Added to cart");
         }
       } else {
-        // Product does not exist in cart
         if (stock < quantity) {
           alert("Total quantity exceeds the available stock.");
           return;
@@ -124,9 +133,19 @@ const ProductDetailsPage = () => {
           alert("Added to cart");
         }
       }
-  
-      // Update the cart in localStorage
+
       localStorage.setItem("cart", JSON.stringify(localCart));
+    }
+  };
+
+  const addToWishlistHandler = () => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      const userId = JSON.parse(savedUser).user_id;
+      addToWishlistMutation({ userId, productId: product!.product_id });
+    } else {
+      alert("You need to log in to add products to your wishlist.");
     }
   };
 
@@ -198,20 +217,14 @@ const ProductDetailsPage = () => {
           <div className="mt-4">
             <h2 className="text-lg font-semibold mb-2">Product Details</h2>
             <ul className="list-disc list-inside space-y-2">
-            <li>Product Id: {product.product_id}</li>
+              <li>Product Id: {product.product_id}</li>
               <li>Category: {product.category}</li>
               <li>Model: {product.model}</li>
               <li>Serial Number: {product.serial_number}</li>
               {product.origin && <li>Origin: {product.origin}</li>}
-              {product.roast_level && (
-                <li>Roast Level: {product.roast_level}</li>
-              )}
-              {product.power_usage && (
-                <li>Power Usage: {product.power_usage}</li>
-              )}
-              {product.warranty_status && (
-                <li>Warranty Status: {product.warranty_status}</li>
-              )}
+              {product.roast_level && <li>Roast Level: {product.roast_level}</li>}
+              {product.power_usage && <li>Power Usage: {product.power_usage}</li>}
+              {product.warranty_status && <li>Warranty Status: {product.warranty_status}</li>}
               {product.distributor_info && (
                 <li>Distributer: {product.distributor_info}</li>
               )}
@@ -243,13 +256,23 @@ const ProductDetailsPage = () => {
             </Button>
           </div>
 
-          <Button
-            className=""
-            onClick={addToCart}
-            disabled={product.quantity_in_stock === 0}
-          >
-            {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              className=""
+              onClick={addToCart}
+              disabled={product.quantity_in_stock === 0}
+            >
+              {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
+            </Button>
+
+            {/* Add to Wishlist Button */}
+            <Button
+              className="bg-black-500 text-white"
+              onClick={addToWishlistHandler}
+            >
+              Add to Wishlist
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -258,7 +281,6 @@ const ProductDetailsPage = () => {
         <div className="border-t pt-8">
           <h2 className="text-2xl font-bold mb-8">Customer Reviews</h2>
 
-          {/* Reviews Summary */}
           <div className="mb-8">
             <div className="flex items-center gap-4">
               <span className="text-4xl font-bold">{totalRating}</span>
@@ -271,16 +293,14 @@ const ProductDetailsPage = () => {
             </div>
           </div>
 
-          {/* Reviews List */}
           <div className="space-y-8">
             {reviews
-              .slice() // Create a shallow copy of the array
-              .reverse() // Reverse the order
+              .slice()
+              .reverse()
               .filter((review) => review.comment !== null)
               .map((review) => (
                 <div key={review.review_id} className="border-b pb-8">
                   <div className="mb-4">
-                    {/* User Name and Created At */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <p className="font-semibold">{review.name}</p>
@@ -290,14 +310,11 @@ const ProductDetailsPage = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Review Comment */}
                   <p className="text-gray-600">{review.comment}</p>
                 </div>
               ))}
           </div>
 
-          {/* No Reviews Message */}
           {reviews.length === 0 && (
             <p className="text-gray-500 text-center py-8">
               No reviews yet. Be the first to review this product!
