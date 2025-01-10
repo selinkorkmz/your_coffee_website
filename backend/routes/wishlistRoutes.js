@@ -36,13 +36,26 @@ router.get('/:userId', authenticateJWT, authorizeRole(['Customer']), (req, res) 
 
     getWishlist(userId, (err, wishlist) => {
         if (err) {
-            return res.status(500).json({ message: 'Failed to retrieve wishlist', error: err.message });
+            return res.status(500).json({
+                message: 'Failed to retrieve wishlist',
+                error: err.message,
+            });
         }
+
+        // Return an empty array for an empty wishlist
         if (!wishlist || wishlist.length === 0) {
-            return res.status(404).json({ message: 'Wishlist is empty' });
+            return res.status(200).json({
+                message: 'Wishlist is empty',
+                wishlist: [], // Return an empty array for consistency
+            });
         }
-        res.status(200).json({ message: 'Wishlist retrieved successfully', wishlist });
+
+        res.status(200).json({
+            message: 'Wishlist retrieved successfully',
+            wishlist,
+        });
     });
 });
+
 
 module.exports = router;
