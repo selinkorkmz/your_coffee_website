@@ -13,12 +13,15 @@ import { Review } from "@/types/review";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { addToWishlist } from "@/lib/requests";
+import { useState } from "react";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 type ProductCardProps = {
   product: Product;
 };
 
 export function ProductCard({ product }: ProductCardProps) {
+  const [isInWishlist, setIsInWishlist] = useState(false);
   const { mutate: addProductToCartMutation } = useMutation({
     mutationFn: ({
       productId,
@@ -58,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleCartAdd = () => {
     const savedUser = localStorage.getItem("user");
-  
+
     if (savedUser) {
       // If the user is logged in, call the backend mutation
       addProductToCartMutation({
@@ -72,7 +75,7 @@ export function ProductCard({ product }: ProductCardProps) {
         (item) => item.productId === product.product_id
       );
       const stock = product.quantity_in_stock;
-  
+
       if (existingProductIndex !== -1) {
         // Product exists in cart
         const quantityInCart = localCart[existingProductIndex].quantity;
@@ -96,7 +99,7 @@ export function ProductCard({ product }: ProductCardProps) {
           alert("Added to cart");
         }
       }
-  
+
       // Update the cart in localStorage
       localStorage.setItem("cart", JSON.stringify(localCart));
     }
@@ -125,6 +128,16 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const averageRating = totalRating / ratings.length || 0;
 
+
+
+
+
+
+  const toggleWishlist = () => {
+    setIsInWishlist((prev) => !prev);
+    handleWishlistAdd()
+  };
+
   return (
     <Card className="w-[350px] flex flex-col">
       <Link to={`/products/${product.product_id}`} className="w-full">
@@ -150,12 +163,12 @@ export function ProductCard({ product }: ProductCardProps) {
               (product.category === "Coffee"
                 ? "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg"
                 : product.category === "Coffee Machines"
-                ? "https://assets.bonappetit.com/photos/61e755ce6b6fe523b0365397/16:9/w_1280,c_limit/20220112%20Best%20Coffee%20Maker%20LEDE.jpg"
-                : product.category === "Drinks"
-                ? "https://assets.bonappetit.com/photos/620fc9f986a3bcc597572d1c/3:2/w_6507,h_4338,c_limit/20220215%20Coffee%20Alternatives%20LEDE.jpg"
-                : product.category === "Accessories"
-                ? "https://img.freepik.com/free-photo/still-life-coffee-tools_23-2149371282.jpg"
-                : "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg")
+                  ? "https://assets.bonappetit.com/photos/61e755ce6b6fe523b0365397/16:9/w_1280,c_limit/20220112%20Best%20Coffee%20Maker%20LEDE.jpg"
+                  : product.category === "Drinks"
+                    ? "https://assets.bonappetit.com/photos/620fc9f986a3bcc597572d1c/3:2/w_6507,h_4338,c_limit/20220215%20Coffee%20Alternatives%20LEDE.jpg"
+                    : product.category === "Accessories"
+                      ? "https://img.freepik.com/free-photo/still-life-coffee-tools_23-2149371282.jpg"
+                      : "https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg")
             }
             alt={product.name}
             className="w-full h-48 object-cover"
@@ -191,18 +204,30 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </CardContent>
       </Link>
-      <CardFooter className="w-full mt-auto flex gap-2">
+      <CardFooter className="w-full mt-auto flex justify-between items-center">
         <Button
-          className="w-full"
+          className="w-[80%] h-full bg-yellow-950"
           onClick={handleCartAdd}
           disabled={product.quantity_in_stock === 0}
         >
           {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
         </Button>
-        <Button className="w-full" onClick={handleWishlistAdd}>
-          Add to Wishlist
-        </Button>
+        <button
+          className="text-xl text-red-500 bg-white h-full items-center justify-center focus:outline-none active:outline-none"
+          style={{
+            width: '20%',
+            border: 'none',
+            outline: 'none',
+          }}
+          onClick={toggleWishlist}
+          onMouseDown={(e) => e.preventDefault()} // Prevents focus
+        >
+          {isInWishlist ? <FaHeart /> : <FaRegHeart />}
+        </button>
       </CardFooter>
+
     </Card>
   );
 }
+
+

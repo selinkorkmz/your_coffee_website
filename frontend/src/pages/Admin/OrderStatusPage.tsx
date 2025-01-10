@@ -58,6 +58,7 @@ function OrderStatusPage() {
               key={order.order_id}
               className="flex flex-col bg-white gap-2 border-2 border-gray-200 p-4 rounded-md mb-4"
             >
+              <p>Customer ID: {order.user_id}</p>
               <p>Order ID: {order.order_id}</p>
               <p>Order Status: {order.order_status}</p>
               <p>Order Date: {order.order_date}</p>
@@ -65,11 +66,12 @@ function OrderStatusPage() {
               <p>Payment Status: {order.payment_status}</p>
               <p>Delivery Address: {order.payment_method}</p>
               <p>Transaction Date: {order.transaction_date}</p>
+              <p>Total Price: {order.total_price}</p>
               <p className="font-bold">Items:</p>
               <ol>
                 {order.items.map((item: any) => (
                   <li key={item.product_id}>
-                    {item.quantity}x {item.product_name}
+                    Product ID: {item.product_id} - {item.product_name} x{item.quantity}
                   </li>
                 ))}
               </ol>

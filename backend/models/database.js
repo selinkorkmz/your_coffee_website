@@ -298,7 +298,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             origin TEXT,
             roast_level TEXT,
             power_usage TEXT,
-            category TEXT CHECK(category IN ('Coffee', 'Coffee Machine')) NOT NULL,
+            category TEXT NOT NULL,
             added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES Users(user_id),
             FOREIGN KEY (product_id) REFERENCES Products(product_id)
