@@ -930,3 +930,156 @@ export async function updateRefundRequest(itemId: number, approve: boolean) {
     };
   }
 }
+/**
+ * Add a product to the user's wishlist
+ * @param userId - The ID of the user
+ * @param productId - The ID of the product to add to the wishlist
+ * @returns Promise with success or error message
+ */
+export async function addToWishlist(userId: number, productId: number) {
+  const token = localStorage.getItem("token");
+
+  try {
+    // Fetch the current wishlist
+    const fetchResponse = await fetchWishlist(userId);
+
+    if (!fetchResponse.success) {
+      console.error("Failed to fetch wishlist:", fetchResponse.message);
+      return {
+        success: false,
+        message: fetchResponse.message,
+      };
+    }
+
+    const currentWishlist = fetchResponse.wishlist;
+
+    // Check if the product is already in the wishlist
+    const isAlreadyInWishlist = currentWishlist.some(
+      (item: { product_id: number }) => item.product_id === productId
+    );
+
+    if (isAlreadyInWishlist) {
+      return {
+        success: false,
+        message: "This product is already in your wishlist.",
+      };
+    }
+
+    // Add the product to the wishlist
+    const addResponse = await fetch(
+      `${API_URL}/wishlist/${userId}/addProductToWishlist`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId }),
+      }
+    );
+
+    const addResponseBody = await addResponse.json();
+
+    if (!addResponse.ok) {
+      console.error("Failed to Add Product to Wishlist:", addResponseBody);
+      return {
+        success: false,
+        message: addResponseBody.message || "Failed to add to wishlist",
+      };
+    }
+
+    return {
+      success: true,
+      message: addResponseBody.message || "Product added to wishlist",
+    };
+  } catch (err) {
+    console.error("Error adding product to wishlist:", err);
+    return {
+      success: false,
+      message: (err as Error).message || "Unexpected error",
+    };
+  }
+}
+
+
+
+/**
+ * Remove a product from the user's wishlist
+ * @param userId - The ID of the user
+ * @param productId - The ID of the product to remove
+ * @returns Promise with success or error message
+ */
+export async function removeFromWishlist(userId: number, productId: number) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(
+      `${API_URL}/wishlist/${userId}/removeProductFromWishlist`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId }),
+      }
+    );
+
+    const responseBody = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: responseBody.message || "Failed to remove from wishlist",
+      };
+    }
+
+    return {
+      success: true,
+      message: responseBody.message || "Product removed from wishlist",
+    };
+  } catch (err) {
+    console.error("Error removing product from wishlist:", err);
+    return {
+      error: (err as Error).message || "Unexpected error",
+    };
+  }
+}
+
+/**
+ * Fetch the user's wishlist
+ * @param userId - The ID of the user
+ * @returns Promise with wishlist items or error message
+ */
+export async function fetchWishlist(userId: number) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/wishlist/${userId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const responseBody = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: responseBody.message || "Failed to fetch wishlist",
+      };
+    }
+
+    return {
+      success: true,
+      wishlist: responseBody.wishlist,
+    };
+  } catch (err) {
+    console.error("Error fetching wishlist:", err);
+    return {
+      error: (err as Error).message || "Unexpected error",
+    };
+  }
+}
