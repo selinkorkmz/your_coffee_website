@@ -12,6 +12,7 @@ import { Product } from "@/types/product";
 import { Review } from "@/types/review";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { addToWishlist } from "@/lib/requests";
 
 type ProductCardProps = {
   product: Product;
@@ -34,6 +35,18 @@ export function ProductCard({ product }: ProductCardProps) {
         alert("added to cart");
       } else {
         alert(data.message)
+      }
+    },
+  });
+
+  const { mutate: addToWishlistMutation } = useMutation({
+    mutationFn: ({ userId, productId }: { userId: number; productId: number }) =>
+      addToWishlist(userId, productId),
+    onSuccess: (data: any) => {
+      if (data.success) {
+        alert("Added to wishlist");
+      } else {
+        alert(data.message);
       }
     },
   });
@@ -89,6 +102,18 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
+
+  const handleWishlistAdd = () => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      const userId = JSON.parse(savedUser).user_id;
+      addToWishlistMutation({ userId, productId: product.product_id });
+    } else {
+      alert("You need to log in to add products to your wishlist.");
+    }
+  };
+
   const ratings =
     reviewsData?.reviews.filter((review: Review) => review.rating !== null) ||
     [];
@@ -105,10 +130,8 @@ export function ProductCard({ product }: ProductCardProps) {
       <Link to={`/products/${product.product_id}`} className="w-full">
         <CardHeader className="h-[120px]">
           <div className="flex flex-col">
-            {/* Horizontal row for name and rating */}
             <div className="flex items-center justify-between">
               <CardTitle>{product.name}</CardTitle>
-              {/* Average Rating */}
               <div className="flex items-center gap-1">
                 <span className="text-sm text-gray-500">
                   {averageRating.toFixed(1)}/5
@@ -168,13 +191,16 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </CardContent>
       </Link>
-      <CardFooter className="w-full mt-auto">
+      <CardFooter className="w-full mt-auto flex gap-2">
         <Button
           className="w-full"
           onClick={handleCartAdd}
           disabled={product.quantity_in_stock === 0}
         >
           {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
+        </Button>
+        <Button className="w-full" onClick={handleWishlistAdd}>
+          Add to Wishlist
         </Button>
       </CardFooter>
     </Card>
