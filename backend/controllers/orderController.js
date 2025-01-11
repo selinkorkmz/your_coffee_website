@@ -278,16 +278,17 @@ const cancelOrder = (orderId, callback) => {
   };
   
   const approveItemRefund = (orderItemId, approve, callback) => {
-    if (typeof callback !== 'function') {
+    if (typeof callback !== "function") {
       throw new Error("Callback function is required.");
     }
   
     // Step 1: Fetch order item details
     const getOrderItemQuery = `
-      SELECT oi.*, o.user_id, u.email, u.name 
+      SELECT oi.*, o.user_id, u.email, u.name, p.name AS product_name 
       FROM OrderItems oi
       JOIN Orders o ON oi.order_id = o.order_id
       JOIN Users u ON o.user_id = u.user_id
+      JOIN Products p ON oi.product_id = p.product_id
       WHERE oi.order_item_id = ?`;
   
     db.get(getOrderItemQuery, [orderItemId], (err, item) => {
@@ -309,7 +310,20 @@ const cancelOrder = (orderId, callback) => {
   
         db.run(rejectQuery, [orderItemId], (err) => {
           if (err) return callback(err);
-          callback(null, { message: "Refund request rejected." });
+  
+          // Send refund rejection email
+          sendRefundRejectionEmail(
+            item.email,
+            item.name,
+            item.product_name,
+            (emailErr) => {
+              if (emailErr) {
+                console.error("Failed to send refund rejection email:", emailErr.message);
+                return callback(emailErr); // Return email error if any
+              }
+              callback(null, { message: "Refund request rejected and user notified." });
+            }
+          );
         });
       } else {
         // Approve refund
@@ -336,23 +350,66 @@ const cancelOrder = (orderId, callback) => {
             console.log(`Refund processed for ${requestedQuantity} item(s): $${refundAmount}`);
   
             // Step 4: Send refund approval email
-            sendRefundApprovalEmail(item.email, item.name, refundAmount, requestedQuantity, (emailErr) => {
-              if (emailErr) {
-                console.error("Failed to send refund email:", emailErr.message);
-                return callback(emailErr); // Return email error if any
-              }
+            sendRefundApprovalEmail(
+              item.email,
+              item.name,
+              refundAmount,
+              requestedQuantity,
+              (emailErr) => {
+                if (emailErr) {
+                  console.error("Failed to send refund email:", emailErr.message);
+                  return callback(emailErr); // Return email error if any
+                }
   
-              callback(null, {
-                message: `Refund approved for ${requestedQuantity} item(s).`,
-                refund_amount: refundAmount,
-              });
-            });
+                callback(null, {
+                  message: `Refund approved for ${requestedQuantity} item(s).`,
+                  refund_amount: refundAmount,
+                });
+              }
+            );
           });
         });
       }
     });
   };
   
+  const sendRefundRejectionEmail = (email, name, productName, callback) => {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "your.coffee2024@gmail.com", // Replace with your email
+        pass: "cblx jqda pyqh eddb", // Replace with your app password
+      },
+    });
+  
+    const mailOptions = {
+      from: '"Your Coffee" <your.coffee2024@gmail.com>',
+      to: email,
+      subject: "Refund Request Rejected - Your Coffee",
+      text: `
+        Dear ${name},
+  
+        We regret to inform you that your refund request for the product "${productName}" has been rejected.
+  
+        If you have any questions or require further assistance, please feel free to contact our support team.
+  
+        Thank you for understanding.
+  
+        Best Regards,
+        Your Coffee Team
+      `,
+    };
+  
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Failed to send refund rejection email:", error.message);
+        return callback(error);
+      }
+      console.log("Refund rejection email sent: " + info.response);
+      callback(null);
+    });
+  };
   // Helper function to send refund approval email
   const sendRefundApprovalEmail = (email, name, refundAmount, quantity, callback) => {
     const transporter = nodemailer.createTransport({
