@@ -48,7 +48,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
 
     db.run(`ALTER TABLE Products ADD COLUMN cost REAL`, (err) => {
       if (err) {
-        console.error("Failed to add cost column:", err.message);
+        console.log("Failed to add cost column:it is already added.");
       } else {
         console.log('Column "cost" added successfully.');
       }
@@ -132,14 +132,14 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
 
     db.run(`ALTER TABLE Users ADD COLUMN tax_id TEXT`, (err) => {
       if (err) {
-        console.error("Failed to add cost column:", err.message);
+        console.log("Failed to add cost column: it is already added.");
       } else {
         console.log('Column "TAX" added successfully.');
       }
     });
     db.run(`ALTER TABLE Users ADD COLUMN home_address TEXT`, (err) => {
       if (err) {
-        console.error("Failed to add cost column:", err.message);
+        console.log("Failed to add cost column: it is already added.");
       } else {
         console.log('Column "homeaddress" added successfully.');
       }
@@ -191,10 +191,8 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
       `ALTER TABLE OrderItems ADD COLUMN refund_quantity_requested INTEGER DEFAULT 0`,
       (err) => {
         if (err) {
-          console.error(
-            "Failed to add refund_quantity_requested column:",
-            err.message
-          );
+          console.log(
+            "Failed to add refund_quantity_requested column:it is already added." );
         } else {
           console.log('Column "refund_quantity_requested" added successfully.');
         }
@@ -205,7 +203,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
       `ALTER TABLE OrderItems ADD COLUMN item_status TEXT DEFAULT ''`,
       (err) => {
         if (err) {
-          console.error("Failed to add item_status column:", err.message);
+          console.log("Failed to add item_status column: it is already added.");
         } else {
           console.log('Column "item_status" added successfully.');
         }
