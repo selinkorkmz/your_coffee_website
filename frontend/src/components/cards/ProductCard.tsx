@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { addProductToCart, getReviews } from "@/lib/requests";
+import { addProductToCart, getReviews, removeFromWishlist } from "@/lib/requests";
 import { Product } from "@/types/product";
 import { Review } from "@/types/review";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -21,7 +21,7 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(Boolean(product.wishlist_id));
   const { mutate: addProductToCartMutation } = useMutation({
     mutationFn: ({
       productId,
@@ -48,6 +48,18 @@ export function ProductCard({ product }: ProductCardProps) {
     onSuccess: (data: any) => {
       if (data.success) {
         alert("Added to wishlist");
+      } else {
+        alert(data.message);
+      }
+    },
+  });
+
+  const { mutate: removeFromWishlistMutation } = useMutation({
+    mutationFn: ({ userId, productId }: { userId: number; productId: number }) =>
+      removeFromWishlist(userId, productId),
+    onSuccess: (data: any) => {
+      if (data.success) {
+        alert("Removed from wishlist");
       } else {
         alert(data.message);
       }
@@ -117,6 +129,17 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
+  const handleWishlistRemove = () => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      const userId = JSON.parse(savedUser).user_id;
+      removeFromWishlistMutation({ userId, productId: product.product_id });
+    } else {
+      alert("You need to log in to add products to your wishlist.");
+    }
+  };
+
   const ratings =
     reviewsData?.reviews.filter((review: Review) => review.rating !== null) ||
     [];
@@ -134,8 +157,13 @@ export function ProductCard({ product }: ProductCardProps) {
 
 
   const toggleWishlist = () => {
+    if (isInWishlist) {
+      handleWishlistRemove()
+    } else {
+      handleWishlistAdd()
+    }
     setIsInWishlist((prev) => !prev);
-    handleWishlistAdd()
+    
   };
 
   return (

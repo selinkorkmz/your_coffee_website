@@ -16,6 +16,7 @@ export type Product = {
   image_url: string | null;
   rating: number;
   cost: number | null;
+  wishlist_id: number | null;
 };
 
 export type CartProduct = Product & { quantity: number }
