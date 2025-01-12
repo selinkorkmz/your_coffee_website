@@ -611,14 +611,15 @@ const getInvoicesInRange = (req, res) => {
   // Query to calculate revenue and fetch order details
   const revenueQuery = `
     SELECT 
-        o.order_id, 
-        o.total_price AS order_total_price, 
-        oi.product_id, 
-        oi.quantity, 
-        p.cost
+        sum(o.total_price) as total_revenue, 
+        sum(totalCosts.order_total_cost) as total_cost
     FROM Orders o
-    JOIN OrderItems oi ON o.order_id = oi.order_id
-    JOIN Products p ON oi.product_id = p.product_id
+    LEFT JOIN (
+      SELECT oi.order_id, sum(p.cost) as order_total_cost
+      FROM OrderItems oi
+      LEFT JOIN Products p on oi.product_id = p.product_id
+      GROUP BY oi.order_id
+    ) totalCosts ON totalCosts.order_id = o.order_id
     WHERE o.order_date BETWEEN ? AND ?
 `;
 
@@ -635,13 +636,8 @@ const getInvoicesInRange = (req, res) => {
 
       console.log("Fetched Rows:", rows);
 
-      let totalRevenue = 0;
-      let totalCost = 0;
-
-      rows.forEach((row) => {
-        totalRevenue += row.order_total_price;
-        totalCost += row.cost * row.quantity;
-      });
+  const totalRevenue = rows[0].total_revenue
+  const totalCost = rows[0].total_cost
 
       const profit = totalRevenue - totalCost;
 

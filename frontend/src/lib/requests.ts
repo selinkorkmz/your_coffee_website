@@ -1,4 +1,5 @@
 import { error } from "console";
+import { padDatePart } from "./utils";
 
 const API_URL = "http://localhost:3000/api";
 
@@ -1078,6 +1079,44 @@ export async function fetchWishlist(userId: number) {
     };
   } catch (err) {
     console.error("Error fetching wishlist:", err);
+    return {
+      error: (err as Error).message || "Unexpected error",
+    };
+  }
+}
+
+export async function getInvoices(startDate: Date, endDate: Date) {
+  const token = localStorage.getItem("token");
+  const startDateParts = startDate.toLocaleDateString().split("/");
+  const endDateParts = endDate.toLocaleDateString().split("/");
+
+  const startDateToUse = `${startDateParts[2]}-${padDatePart(startDateParts[0])}-${padDatePart(startDateParts[1])}`;
+  const endDateToUse = `${endDateParts[2]}-${padDatePart(endDateParts[0])}-${padDatePart(endDateParts[1])}`;
+  try {
+    const response = await fetch(`${API_URL}/orders/invoices?startDate=${startDateToUse}&endDate=${endDateToUse}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const responseBody = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: responseBody.message || "Failed to fetch invoices",
+      };
+    }
+
+    return {
+      success: true,
+      profit: responseBody.profit,
+      revenue: responseBody.revenue,
+    };
+  } catch (err) {
+    console.error("Error fetching invoices:", err);
     return {
       error: (err as Error).message || "Unexpected error",
     };

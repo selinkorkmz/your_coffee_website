@@ -19,8 +19,9 @@ const authenticateJWT = require('../middlewares/authMiddleware.js'); // JWT auth
 const authorizeRole = require('../middlewares/authorizeRole.js'); // Role-based authorization middleware
 
 // Route to get all products (Accessible by all roles, including customers)
-router.get('/all', (req, res) => {
-    getAllProducts((err, products) => {
+router.get('/all', authenticateJWT, (req, res) => {
+    const userId = req.user.userId.toString()
+    getAllProducts(userId, (err, products) => {
         if (err) {
             return res.status(500).json({ message: 'Failed to retrieve products', error: err.message });
         }

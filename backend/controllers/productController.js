@@ -16,10 +16,16 @@ const getProductById = (productId, callback) => {
   });
 };
 
-const getAllProducts = (callback) => {
-  const query = `SELECT * FROM Products`;
+const getAllProducts = (userId, callback) => {
+  const query = `
+    SELECT p.*, wishlist.wishlist_id
+    FROM Products p
+    LEFT JOIN (
+      SELECT w.product_id as product_id, w.wishlist_id as wishlist_id FROM Wishlist w WHERE w.user_id = ?
+    ) wishlist ON p.product_id = wishlist.product_id
+  `;
 
-  db.all(query, [], async (err, rows) => {
+  db.all(query, [userId], async (err, rows) => {
     if (err) {
       console.error("Error fetching all products:", err.message);
       return callback(err, null);
@@ -43,7 +49,6 @@ const getAllProducts = (callback) => {
           }
         })
       );
-      console.log(productsWithRatings);
       callback(null, productsWithRatings);
     } catch (error) {
       console.error("Error processing products with ratings:", error);

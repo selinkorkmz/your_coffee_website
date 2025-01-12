@@ -62,7 +62,7 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
       return callback(new Error("Invalid card details."));
     }
 
-    const orderDate = new Date().toISOString();
+    const orderDate = new Date(Date.now() + (1000 * 24 * 60 * 60)).toISOString();
     const paymentStatus = "Completed";
     const paymentMethod = "Credit Card";
     const createOrderQuery = 
@@ -73,11 +73,16 @@ const pay = (userId, cardDetails, deliveryAddress, callback) => {
 
     // Calculate the total price for the entire cart
     cartItems.forEach((item) => {
+      console.log("item")
+      console.log(item)
       const priceAtPurchase =
-        item.discounted_price !== null ? item.discounted_price : item.price;
+        item.discounted_price ? item.discounted_price : item.price;
+        console.log("price", priceAtPurchase)
       const totalPrice = priceAtPurchase * item.quantity;
       totalOrderPrice += totalPrice;
     });
+
+    console.log(totalOrderPrice)
 
     let orderId = 0;
 

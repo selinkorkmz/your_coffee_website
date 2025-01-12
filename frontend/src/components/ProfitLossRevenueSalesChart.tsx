@@ -1,6 +1,8 @@
-import { CartesianGrid, Line, LineChart, XAxis, YAxis, Legend, Tooltip } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis, Legend, Tooltip, ResponsiveContainer, BarChart, ReferenceLine, Bar } from "recharts";
 import { DatePicker } from "./ui/datePicker";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getInvoices } from "@/lib/requests";
 const stats = [
     {
         date: '2024-12-20',
@@ -34,31 +36,46 @@ export default function ProfitLossRevenueSalesChart() {
         new Date(now - 7 * 24 * 60 * 60 * 1000)
       );
       const [endDate, setEndDate] = useState<Date>(new Date(now));
-      const [showDatePickers, setShowDatePickers] = useState(false);
-      
+      const { data: profitRevenueData } = useQuery({
+        queryKey: [startDate, endDate],
+        queryFn: async () => {
+            const result = await getInvoices(startDate, endDate)
+
+            return [{
+                ["profit/loss"]: result.profit,
+                revenue: result.revenue,
+            }]
+        },
+      });
+
+    
+      const [showDatePickers, setShowDatePickers] = useState(false)
     
 
     return (
         <div className="flex gap-20 mt-10 px-8">
 
             <div className="flex flex-col gap-20">
-              <LineChart width={700} height={400} data={stats} >
-                <XAxis dataKey="date" />
-                <YAxis />
-                <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="profitLoss" stroke="#8884d8" name="Profit/Loss" />
-                <Line type="monotone" dataKey="revenue" stroke="#ffc658" name="Revenue" />
-            </LineChart>
-            <LineChart width={700} height={400} data={stats} >
-                <XAxis dataKey="date" />
-                <YAxis />
-                <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="saleCount" stroke="#82ca9d" name="Sale Count" />
-            </LineChart>  
+        <BarChart
+          width={500}
+          height={300}
+          data={profitRevenueData}
+          margin={{
+            top: 5,
+            right: 30,
+            left: 20,
+            bottom: 5,
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <ReferenceLine y={0} stroke="#000" />
+          <Bar dataKey="revenue" fill="#8884d8" />
+          <Bar dataKey="profit/loss" fill="#82ca9d" />
+        </BarChart>
             </div>
             
             
