@@ -9,6 +9,7 @@ export function DatePicker({selected, setSelected}: {selected: Date | undefined,
       mode="single"
       selected={selected}
       onSelect={setSelected}
+      timeZone="+03:00"
     />
   );
 }
