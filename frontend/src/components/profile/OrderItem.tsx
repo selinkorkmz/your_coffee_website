@@ -177,16 +177,29 @@ const RefundSection = ({
       productId: number;
       quantity: number;
     }) => {
+      // Check if the order date is older than 30 days
+      const orderDate = new Date(orderDetails?.order?.order_date);
+      const currentDate = new Date();
+      const differenceInDays =
+        (currentDate.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (differenceInDays > 30) {
+        // Reject the promise with an error message
+        throw new Error("You can't ask for a refund after 30 days");
+      }
+
+      // Proceed with the refund request if within 30 days
       const orderItemId = orderDetails?.order?.orderItems.find(
         (item: any) => item.product_id === productId
       ).order_item_id;
-      requestRefund(orderId, orderItemId, quantity);
+
+      return requestRefund(orderId, orderItemId, quantity);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       toast.success("Refund request submitted");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message);
     },
   });
