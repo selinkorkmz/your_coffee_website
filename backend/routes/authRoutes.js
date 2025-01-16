@@ -54,9 +54,9 @@ router.get('/users/email/:email', authenticateJWT, (req, res) => {
 // Route to update user information (Protected Route)
 router.put('/users/:id', authenticateJWT, (req, res) => {
     const userId = req.params.id;
-    const { name, email, password } = req.body;
+    const { name, email, password, tax_id, home_address } = req.body;
 
-    updateUser(userId, name, email, password, (err, message) => {
+    updateUser(userId, name, email, password, tax_id, home_address, (err, message) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }

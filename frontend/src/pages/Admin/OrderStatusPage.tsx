@@ -42,7 +42,7 @@ function OrderStatusPage() {
         <div className="flex justify-center">
           <h1 className="text-2xl font-bold mb-4">Orders</h1>
         </div>
-        
+
         {data?.orders
           .slice()
           .filter((order: any) => {
@@ -77,7 +77,11 @@ function OrderStatusPage() {
               </ol>
               <div className="flex items-center gap-2">
                 <p>Status:</p>
-                {user.role === "Product Manager" ? (
+                {order.order_status === "Canceled" ? (
+                  // Always show non-editable status if Canceled
+                  <span className="text-black italic">{order.order_status}</span>
+                ) : user.role === "Product Manager" ? (
+                  // Editable for Product Manager if not Canceled
                   <Select
                     onValueChange={(value) =>
                       updateOrderStatusMutation({
@@ -99,8 +103,10 @@ function OrderStatusPage() {
                     </SelectContent>
                   </Select>
                 ) : user.role === "Sales Manager" ? (
+                  // Read-only for Sales Manager
                   <span>{order.order_status}</span>
                 ) : null}
+
                 <button
                   onClick={() => {
                     window
@@ -118,6 +124,7 @@ function OrderStatusPage() {
                   See Invoice
                 </button>
               </div>
+
             </div>
           ))}
       </div>

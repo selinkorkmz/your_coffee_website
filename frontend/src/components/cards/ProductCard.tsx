@@ -234,7 +234,7 @@ export function ProductCard({ product }: ProductCardProps) {
       </Link>
       <CardFooter className="w-full mt-auto flex justify-between items-center">
         <Button
-          className="w-[80%] h-full bg-yellow-950"
+          className="w-[80%] h-full bg-yellow-950  hover:bg-yellow-700"
           onClick={handleCartAdd}
           disabled={product.quantity_in_stock === 0}
         >

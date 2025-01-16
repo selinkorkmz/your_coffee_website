@@ -12,7 +12,7 @@ const queryClient = new QueryClient();
 export default function OrderItem({ item }: { item: any }) {
   const [expanded, setExpanded] = useState(false);
   const canRefund =
-    item.order_status === "Delivered" || item.order_status === "In-Transit";
+    item.order_status === "Delivered" && new Date(item.order_date).getTime()>new Date().getTime()-2592000000;
   const canCancel =
     item.order_status === "In-Transit" || item.order_status === "Processing";
 
@@ -26,6 +26,13 @@ export default function OrderItem({ item }: { item: any }) {
 
   return (
     <div className="flex flex-col divide-y rounded-lg border border-gray-200 bg-white shadow-sm min-h-[100px]">
+      <div className="flex-1 text-center">
+        <div className="flex justify-center items-center space-x-2 py-1">
+          <span className="font-semibold">Delivery Address:</span>
+          <span className="font-semibold">{item.payment_method}</span>
+        </div>
+      </div>
+
       <div
         onClick={() => setExpanded((prev) => !prev)}
         className="flex flex-wrap md:flex-nowrap items-center justify-center px-4 py-4 min-h-[100px]"

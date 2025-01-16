@@ -52,22 +52,10 @@ const removeFromWishlist = (userId, productId, callback) => {
 const getWishlist = (userId, callback) => {
     const query = `
         SELECT 
-            product_id,
-            name,
-            description,
-            model,
-            serial_number,
-            price,
-            discounted_price,
-            quantity_in_stock,
-            warranty_status,
-            distributor_info,
-            origin,
-            roast_level,
-            power_usage,
-            category,
-            added_at
-        FROM Wishlist
+            p.*,
+            w.added_at
+        FROM Wishlist w
+        left join Products p on p.product_id = w.product_id
         WHERE user_id = ?
     `;
 

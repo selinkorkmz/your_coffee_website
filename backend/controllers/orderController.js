@@ -621,7 +621,7 @@ const getInvoicesInRange = (req, res) => {
       GROUP BY oi.order_id
     ) totalCosts ON totalCosts.order_id = o.order_id
     WHERE o.order_date BETWEEN ? AND ?
-`;
+  `;
 
   db.all(
     revenueQuery,

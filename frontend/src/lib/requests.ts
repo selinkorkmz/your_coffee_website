@@ -679,10 +679,10 @@ export async function updateDiscountRate(productId: number, rate: number) {
     }
     return {
       success: true,
-      message: "Discaount rate updated successfully",
+      message: "Discount rate updated successfully",
     };
   } catch (err) {
-    console.error("Error updating Discaount rate:", err);
+    console.error("Error updating discount rate:", err);
     return {
       error: (err as Error).message ?? "Unexpected error",
     };
@@ -1119,6 +1119,44 @@ export async function getInvoices(startDate: Date, endDate: Date) {
     console.error("Error fetching invoices:", err);
     return {
       error: (err as Error).message || "Unexpected error",
+    };
+  }
+}
+
+export async function updateUserInfo(
+  params:{userId: number,
+  name: string,
+  email: string,
+  password: string | null,
+  tax_id: string,
+  home_address: string}
+) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`${API_URL}/auth/users/${params.userId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to update user.");
+    }
+
+    return {
+      success: true,
+      message: "User updated successfully",
+    };
+  } catch (err) {
+    console.error("Error updating user:", err);
+    return {
+      success: false,
+      error: (err as Error).message ?? "Unexpected error",
     };
   }
 }

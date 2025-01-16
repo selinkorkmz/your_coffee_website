@@ -97,7 +97,7 @@ const getUserByEmail = (email, callback) => {
 };
 
 // Update User Information Function
-const updateUser = async (userId, name, email, password, callback) => {
+const updateUser = async (userId, name, email, password, tax_id, home_address, callback) => {
     // Check if the new email is already in use by another user
     const checkEmailQuery = `SELECT * FROM Users WHERE email = ? AND user_id != ?`;
 
@@ -107,8 +107,8 @@ const updateUser = async (userId, name, email, password, callback) => {
 
         // Prepare the query and parameters based on whether the password is provided
         const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
-        let updateQuery = `UPDATE Users SET name = ?, email = ?`;
-        const params = [name, email];
+        let updateQuery = `UPDATE Users SET name = ?, email = ?, tax_id = ?, home_address = ?`;
+        const params = [name, email, tax_id, home_address];
 
         // Add password to query and parameters if provided
         if (hashedPassword) {

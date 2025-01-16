@@ -101,7 +101,7 @@ export default function AdminPanel() {
             <i className="bi bi-app-indicator px-2 py-1 rounded-md bg-blue-600"></i>
           )}
           <span className="text-[15px] ml-4 text-black font-bold">
-            Sales Management
+            Refund Management
           </span>
         </div>
       </div>

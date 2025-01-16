@@ -267,7 +267,7 @@ const ProductDetailsPage = () => {
 
             {/* Add to Wishlist Button */}
             <Button
-              className="bg-black-500 text-white"
+              className=""
               onClick={addToWishlistHandler}
             >
               Add to Wishlist
